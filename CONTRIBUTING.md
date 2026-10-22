@@ -34,3 +34,11 @@ It's also helpful to organise source code and other files into folders. Our fold
 Write good code. You know the drill - sensible variable names, functions, error handling, comments _if needed_, etc.
 
 As for formatting, follow [PEP 8](https://peps.python.org/pep-0008/), which is the standard for Python code. I recommend using the [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) extension for VSCode, or another tool to automatically format your code.
+
+## Dependency management
+
+I recommend using [uv](https://docs.astral.sh/uv/), since it is fast and manages virtual environments automatically.
+
+Dependencies are specified in [pyproject.toml](pyproject.toml) and can be managed using `uv`.
+
+Alternatively, you can use `pip` or another package manager of your choice to install dependencies (mainly `PyQt6` for now).
