@@ -81,7 +81,7 @@ class CalendarApp(QWidget):
         self.logo.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         self.logo.setMinimumSize(200, 60)
         self.logo.setMaximumSize(280, 78)
-        logo_path = Path(__file__).with_name("company logo.png")
+        logo_path = Path("assets") / "company_logo.png"
         self.logo.setPixmap(
             QPixmap(str(logo_path)).scaled(
                 270,

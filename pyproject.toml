@@ -1,0 +1,6 @@
+[project]
+name = "make-it-all-project"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["pyqt6>=6.11.0"]
