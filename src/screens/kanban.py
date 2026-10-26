@@ -65,9 +65,13 @@ class TaskCard(QFrame):
         super().__init__()
         self.expanded = False
 
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setFrameShadow(QFrame.Shadow.Raised)
-        self.setLineWidth(1)
+        self.setObjectName("card")
+        self.setStyleSheet("""
+            QFrame#card {
+                background-color: palette(base);
+                border: 1px solid palette(light);
+            }
+        """)
 
         # Drop shadow
         shadow = QGraphicsDropShadowEffect(self)
@@ -102,7 +106,7 @@ class TaskCard(QFrame):
             self.expand_btn.setStyleSheet("""
                 QPushButton#cardFooter {
                   border: none;
-                  border-top: 1px solid palette(mid);
+                  border-top: 1px solid palette(light);
                   text-align: center;
                   padding: 6px 0;
                 }
