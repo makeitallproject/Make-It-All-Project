@@ -68,7 +68,7 @@ class TaskCard(QFrame):
         self.setStyleSheet("""
             QFrame#card {
                 background-color: palette(base);
-                border: 1px solid palette(light);
+                border: 2px solid palette(light);
             }
         """)
 
@@ -76,14 +76,17 @@ class TaskCard(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(GAP)
 
+        # Card title
         title = QLabel(task["name"])
         title.setWordWrap(True)
+        title.setStyleSheet("font-size: 10pt; font-weight: semibold;")
+        title.setContentsMargins(GAP, GAP, GAP, 0)
         layout.addWidget(title)
 
         # Subtasks!
         self.subtask_area = QWidget()
         subtask_layout = QVBoxLayout(self.subtask_area)
-        subtask_layout.setContentsMargins(GAP, GAP, GAP, GAP)  # FIXME
+        subtask_layout.setContentsMargins(GAP, 0, GAP, 0)
         subtask_layout.setSpacing(4)
         for subtask in task.get("subtasks", []):
             check = QCheckBox(subtask["name"])
@@ -97,7 +100,7 @@ class TaskCard(QFrame):
             self.expand_btn.setObjectName("cardFooter")
             self.expand_btn.setStyleSheet("""
                 QPushButton#cardFooter {
-                  border: none;
+                  border: 1px solid transparent;
                   border-top: 1px solid palette(light);
                   text-align: center;
                   padding: 6px 0;
@@ -137,7 +140,7 @@ class ColumnWidget(QFrame):
 
         header = QHBoxLayout()
         title = QLabel(name)
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        title.setStyleSheet("font-size: 12pt; font-weight: bold;")
         header.addWidget(title)
         header.addStretch()
 
