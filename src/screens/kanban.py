@@ -1,10 +1,12 @@
 import signal
 import sys
 
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
     QFrame,
+    QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -12,7 +14,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-SPACING = 8
+GAP = 8
 
 TASKS = [
     {
@@ -58,14 +60,25 @@ TASKS = [
 ]
 
 
-class TaskCard(QWidget):
+class TaskCard(QFrame):
     def __init__(self, task):
         super().__init__()
         self.expanded = False
 
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setFrameShadow(QFrame.Shadow.Raised)
+        self.setLineWidth(1)
+
+        # Drop shadow
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(12)
+        shadow.setOffset(0, 2)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        self.setGraphicsEffect(shadow)
+
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(*[SPACING] * 4)
-        layout.setSpacing(SPACING)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(GAP)
 
         title = QLabel(task["name"])
         title.setWordWrap(True)
@@ -74,7 +87,7 @@ class TaskCard(QWidget):
         # Subtasks!
         self.subtask_area = QWidget()
         subtask_layout = QVBoxLayout(self.subtask_area)
-        subtask_layout.setContentsMargins(SPACING, 0, 0, SPACING)
+        subtask_layout.setContentsMargins(GAP, GAP, GAP, GAP)  # FIXME
         subtask_layout.setSpacing(4)
         for subtask in task.get("subtasks", []):
             check = QCheckBox(subtask["name"])
@@ -85,8 +98,21 @@ class TaskCard(QWidget):
 
         self.expand_btn = QPushButton("Expand") if task.get("subtasks") else None
         if self.expand_btn:
+            self.expand_btn.setObjectName("cardFooter")
+            self.expand_btn.setStyleSheet("""
+                QPushButton#cardFooter {
+                  border: none;
+                  border-top: 1px solid palette(mid);
+                  text-align: center;
+                  padding: 6px 0;
+                }
+                QPushButton#cardFooter:hover { background: palette(light); }
+                QPushButton#cardFooter:pressed { background: palette(midlight); }
+            """)
             self.expand_btn.clicked.connect(self.toggle_subtasks)
             layout.addWidget(self.expand_btn)
+        else:
+            layout.addSpacing(GAP)
 
     def toggle_subtasks(self):
         if not self.expand_btn:
@@ -125,7 +151,7 @@ class ColumnWidget(QFrame):
         self.body = QWidget()
         self.body_layout = QVBoxLayout(self.body)
         self.body_layout.setContentsMargins(0, 0, 0, 0)
-        self.body_layout.setSpacing(SPACING)
+        self.body_layout.setSpacing(GAP)
         for task in tasks:
             self.body_layout.addWidget(TaskCard(task))
         self.body_layout.addStretch()
@@ -140,8 +166,8 @@ class KanbanScreen(QWidget):
 
         layout = QHBoxLayout(self)
 
-        layout.setContentsMargins(*[SPACING] * 4)
-        layout.setSpacing(SPACING)
+        layout.setContentsMargins(*[GAP] * 4)
+        layout.setSpacing(GAP)
 
         for column in TASKS:
             layout.addWidget(ColumnWidget(column["column"], column["tasks"]), 1)
