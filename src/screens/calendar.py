@@ -43,19 +43,10 @@ class CalendarApp(QWidget):
         self.setMinimumSize(700, 560)
         self.setStyleSheet(
             """
-            QWidget {
-                background-color: white;
-                color: black;
-            }
             QPushButton {
-                background-color: white;
-                border: 1px solid black;
+                border: 1px solid;
                 padding: 8px 12px;
                 font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #eeeeee;
-            }
             """
         )
 
@@ -96,7 +87,7 @@ class CalendarApp(QWidget):
         self.show_tasks.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.show_tasks.setMinimumHeight(58)
         self.show_tasks.setStyleSheet(
-            "border: 4px solid black; font-size: 20px; padding: 8px;"
+            "border: 4px; font-size: 20px; padding: 8px;"
         )
 
         #create header
@@ -187,21 +178,8 @@ class SpecialCalendar(QCalendarWidget):
 
         self.setStyleSheet("""
             /* top navigation bar (month/year buttons) */
-            QCalendarWidget QWidget#qt_calendar_navigationbar {
-                background-color: #ffd700;
-            }
             QCalendarWidget QToolButton {
-                color: white;
-                background: white;
                 font-size: 14px;
-            }
-            QCalendarWidget QToolButton:hover {
-                background-color: black;
-            }
-
-            /* dates from the previous/next month */
-            QCalendarWidget QAbstractItemView:disabled {
-                color: #aaa;
             }
         """)
 
@@ -210,15 +188,7 @@ class SpecialCalendar(QCalendarWidget):
             draw red dots on calendar to show there are tasks due on that date
             """
 
-            #draw cell differently if selected
-            if date == self.selectedDate():
-                painter.save()
-                painter.fillRect(rect, QColor("#ffd700"))      # selection fill
-                painter.setPen(QColor("black"))                # selection text
-                painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, str(date.day()))
-                painter.restore()
-            else:
-                super().paintCell(painter, rect, date)
+            super().paintCell(painter, rect, date)
     
             #see if there are tasks on that date
             count = 0
@@ -253,18 +223,10 @@ class AddTask(QWidget):
             self.setGeometry(300,300,400,300)
             self.setStyleSheet(
                 """
-                QWidget {
-                    background-color: white;
-                    color: black;
-                }
                 QPushButton {
-                    background-color: white;
-                    border: 1px solid black;
+                    border: 1px solid;
                     padding: 8px 12px;
                     font-size: 13px;
-                }
-                QPushButton:hover {
-                    background-color: #eeeeee;
                 }
                 """
             )
