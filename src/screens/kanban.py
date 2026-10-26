@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
     QFrame,
-    QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -72,13 +71,6 @@ class TaskCard(QFrame):
                 border: 1px solid palette(light);
             }
         """)
-
-        # Drop shadow
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(12)
-        shadow.setOffset(0, 2)
-        shadow.setColor(QColor(0, 0, 0, 40))
-        self.setGraphicsEffect(shadow)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
