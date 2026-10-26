@@ -192,7 +192,7 @@ class SpecialCalendar(QCalendarWidget):
             }
             QCalendarWidget QToolButton {
                 color: white;
-                background: transparent;
+                background: white;
                 font-size: 14px;
             }
             QCalendarWidget QToolButton:hover {
