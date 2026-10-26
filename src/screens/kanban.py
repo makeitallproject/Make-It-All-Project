@@ -83,18 +83,22 @@ class TaskCard(QWidget):
         self.subtask_area.hide()
         layout.addWidget(self.subtask_area)
 
-        self.toggle_btn = QPushButton("Expand")
-        self.toggle_btn.clicked.connect(self.toggle_subtasks)
-        layout.addWidget(self.toggle_btn)
+        self.expand_btn = QPushButton("Expand") if task.get("subtasks") else None
+        if self.expand_btn:
+            self.expand_btn.clicked.connect(self.toggle_subtasks)
+            layout.addWidget(self.expand_btn)
 
     def toggle_subtasks(self):
+        if not self.expand_btn:
+            print("Warning: toggle_subtasks called on a task with no subtasks")
+            return
         self.expanded = not self.expanded
         if self.expanded:
             self.subtask_area.show()
-            self.toggle_btn.setText("Retract")
+            self.expand_btn.setText("Retract")
         else:
             self.subtask_area.hide()
-            self.toggle_btn.setText("Expand")
+            self.expand_btn.setText("Expand")
 
 
 class ColumnWidget(QFrame):
