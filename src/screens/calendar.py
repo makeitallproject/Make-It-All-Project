@@ -1,4 +1,5 @@
 import sys
+import task
 from pathlib import Path
 from datetime import date
 
@@ -41,6 +42,7 @@ class CalendarApp(QWidget):
 
         self.setWindowTitle("Calendar")
         self.setMinimumSize(700, 560)
+        self.showMaximized()
         self.setStyleSheet(
             """
             QPushButton {
@@ -64,7 +66,7 @@ class CalendarApp(QWidget):
         if is_manager:
             self.add_task_btn = QPushButton("Add a task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
-            #self.add_task_window = AddTask(self.calendar)
+            self.add_task_window = task.MainWindow()
             self.add_task_btn.setMinimumSize(70, 60)
 
         #create logo
@@ -168,7 +170,8 @@ class CalendarApp(QWidget):
         """
         show new window for adding tasks, this will link to Evan's screen (when it exists)
         """
-        #self.add_task_window.show()
+        self.add_task_window.show()
+
 
 
 
@@ -214,70 +217,6 @@ class SpecialCalendar(QCalendarWidget):
      
             painter.restore()
 
-
-# class AddTask(QWidget):
-#     def __init__(self,calendar):
-#             super().__init__()
-    
-#             self.setWindowTitle("Add Task")
-#             self.setGeometry(300,300,400,300)
-#             self.setStyleSheet(
-#                 """
-#                 QPushButton {
-#                     border: 1px solid;
-#                     padding: 8px 12px;
-#                     font-size: 13px;
-#                 }
-#                 """
-#             )
-
-#             self.calendar = calendar
-
-
-
-#             #enter name of task
-#             self.name_title = QLabel()
-#             self.name_title.setText("Task Name:")
-#             self.name_input = QLineEdit(self)
-
-#             #enter date of task ending
-#             self.date_title = QLabel()
-#             self.date_title.setText("\nTask Due Date: ")
-#             self.calendar = SpecialCalendar()
-
-#             #add "submit" button
-#             self.submit_btn = QPushButton("Submit")
-#             self.submit_btn.clicked.connect(self.clicked_submit_btn)
-
-#             #add confirmation text
-#             self.confirm_submit = QLabel()
-
-
-#             #create layout and add calendar
-#             layout = QVBoxLayout()
-#             layout.addWidget(self.name_title)
-#             layout.addWidget(self.name_input)
-#             layout.addWidget(self.date_title)
-#             layout.addWidget(self.calendar)
-#             layout.addWidget(self.submit_btn)
-#             layout.addWidget(self.confirm_submit)
-#             self.setLayout(layout)
-
-#     def clicked_submit_btn(self):
-#         """
-#         No need to implement adding tasks at first prototype stage, so success and fail messages are toggled
-#         """
-        
-#         success = "Task added successfully!"
-#         fail = "Unable to add task."
-
-#         if self.confirm_submit.text() == fail or self.confirm_submit.text() == "":
-#             self.confirm_submit.setText(success)
-
-#         elif self.confirm_submit.text() == success:
-#             self.confirm_submit.setText(fail)
-
-#         self.calendar.updateCells()
 
 if __name__ == "__main__":
     # This guard allows Calendar.py to be imported for testing without opening

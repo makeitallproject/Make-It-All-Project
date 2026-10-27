@@ -114,10 +114,12 @@ class MainWindow(QMainWindow):
         self.reminders_container.setVisible(checked)
 
 
-app = QApplication(sys.argv)
+# Added this __name__ bit to ensure the window doesn't immediately open when its run from calendar.py
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
-window = MainWindow()
-window.show()
+    window = MainWindow()
+    window.show()
 
 
-app.exec()
+    app.exec()
