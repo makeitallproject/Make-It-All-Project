@@ -14,4 +14,6 @@
 ```bash
 # View the calendar screen
 uv run src/screens/calendar.py
+# View the kanban (board) screen
+uv run src/screens/kanban.py
 ```
