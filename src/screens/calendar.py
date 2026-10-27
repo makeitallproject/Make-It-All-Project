@@ -1,5 +1,7 @@
 import sys
+import signal
 import task
+import kanban
 from pathlib import Path
 from datetime import date
 
@@ -28,6 +30,7 @@ from PyQt6.QtWidgets import (
     QCalendarWidget,
     QLineEdit,
     QFrame,
+    QSpacerItem
 )
 
 is_manager = True
@@ -59,8 +62,21 @@ class CalendarApp(QWidget):
 
         #create view tasks button
         self.all_tasks_btn = QPushButton("View Tasks")
+        self.all_tasks_window = kanban.KanbanScreen()
         self.all_tasks_btn_pressed = False
         self.all_tasks_btn.clicked.connect(self.clicked_all_tasks_btn)
+        self.all_tasks_btn.setMinimumSize(70, 60)
+
+        #create knowledge sharing button
+        self.knowledge_btn = QPushButton("View Knowledge")
+        #self.logout_window = kanban.KanbanScreen()
+        self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
+        self.knowledge_btn.setMinimumSize(70, 60)
+
+        #create log out button
+        self.logout_btn = QPushButton("Log Out")
+        #self.logout_window = kanban.KanbanScreen()
+        self.logout_btn.clicked.connect(self.clicked_logout_btn)
 
         #create add task button
         if is_manager:
@@ -68,6 +84,7 @@ class CalendarApp(QWidget):
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
             self.add_task_window = task.MainWindow()
             self.add_task_btn.setMinimumSize(70, 60)
+
 
         #create logo
         self.logo = QLabel()
@@ -103,6 +120,8 @@ class CalendarApp(QWidget):
         logo_row = QHBoxLayout()
         logo_row.setContentsMargins(0, 0, 0, 0)
         logo_row.addStretch()
+        logo_row.addWidget(self.logout_btn)
+        logo_row.addSpacerItem(QSpacerItem(1185, 20, QSizePolicy.Policy.Expanding))
         logo_row.addWidget(self.logo)
 
         #add logo row to header
@@ -113,8 +132,8 @@ class CalendarApp(QWidget):
         button_row = QHBoxLayout()
         button_row.setContentsMargins(0, 0, 0, 0)
         button_row.setSpacing(10)
-        self.all_tasks_btn.setMinimumSize(70, 60)
         button_row.addWidget(self.all_tasks_btn)
+        button_row.addWidget(self.knowledge_btn)
         if is_manager:
             button_row.addWidget(self.add_task_btn)
         button_row.addStretch()
@@ -162,13 +181,25 @@ class CalendarApp(QWidget):
 
     def clicked_all_tasks_btn(self):
         """
-        clicking on the "all tasks" button will take the user to the to-do list (WIP)
+        show Mish's Kanban board window
         """
-        return
+        self.all_tasks_window.show()
+
+    def clicked_knowledge_btn(self):
+        """
+        show Mish's knowledge sharing window
+        """
+        #self.knowledge_window.show()
+
+    def clicked_logout_btn(self):
+        """
+        show Tobi's log in window
+        """
+        #self.logout_window.show()
 
     def clicked_add_task_btn(self):
         """
-        show new window for adding tasks, this will link to Evan's screen (when it exists)
+        show Evan's "add tasks" window
         """
         self.add_task_window.show()
 
@@ -221,6 +252,8 @@ class SpecialCalendar(QCalendarWidget):
 if __name__ == "__main__":
     # This guard allows Calendar.py to be imported for testing without opening
     # a window, while still supporting direct execution from the command line.
+
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
     app = QApplication(sys.argv)
     window = CalendarApp()
     window.show()
