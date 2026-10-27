@@ -42,3 +42,20 @@ I recommend using [uv](https://docs.astral.sh/uv/), since it is fast and manages
 Dependencies are specified in [pyproject.toml](pyproject.toml) and can be managed using `uv`.
 
 Alternatively, you can use `pip` or another package manager of your choice to install dependencies (mainly `PyQt6` for now).
+
+## Qt styling
+
+To make sure the UI works on various systems, avoid manually specifying text and background colours in stylesheets. Prefer to use the default Qt widgets. Then, it'll automatically adapt to the system theme (including Windows' light/dark theme).
+
+You can, however, use colours from the system theme in your stylesheets! Use the `palette()` function with a lowercase colour role, for example:
+
+```css
+QFrame#card {
+    background-color: palette(base);
+    border: 2px solid palette(light);
+}
+```
+
+You can see a description of all the colour roles in the [Qt6 documentation for QPalette::ColorRole](https://doc.qt.io/qt-6/qpalette.html#ColorRole-enum).
+
+See `kanban.py` or `calendar.py` for examples of this being implemented.
