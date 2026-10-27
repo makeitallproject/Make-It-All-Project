@@ -17,3 +17,7 @@ uv run src/screens/calendar.py
 # View the kanban (board) screen
 uv run src/screens/kanban.py
 ```
+
+## Development and contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on development, code style, and project guidelines.
