@@ -3,7 +3,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, 
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
-                             QPushButton, QLabel, QLineEdit, QCheckBox)
+                             QPushButton, QLabel, QLineEdit, QCheckBox,
+                             QComboBox, QTextEdit, QDateEdit)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -35,12 +36,17 @@ class MainWindow(QMainWindow):
         form_layout.setSpacing(20)
         
         self.title_input = QLineEdit()
-        self.notes_input = QLineEdit()
-        self.people_input = QLineEdit()
-        self.due_input = QLineEdit()
+        self.notes_input = QTextEdit()
+        self.notes_input.setMinimumHeight(80)
+        self.people_input = QComboBox()
+        self.people_input.addItems(["Unassigned", "Evan", "Mish", "Charles", "Tobi", "Kipras", "Louis"])
+        self.people_input.setMinimumHeight(35)
+        self.due_input = QDateEdit()
+        self.due_input.setCalendarPopup(True) 
+        self.due_input.setMinimumHeight(35)
         self.docs_input = QLineEdit()
 
-        for input_field in [self.title_input, self.notes_input, self.people_input, self.due_input, self.docs_input]:
+        for input_field in [self.title_input, self.people_input, self.due_input, self.docs_input]:
             input_field.setMinimumHeight(35)
         
         form_layout.addRow("Task Title", self.title_input)
@@ -55,6 +61,7 @@ class MainWindow(QMainWindow):
         self.reminders_checkbox = QCheckBox("Section below expands if this is checked")
         form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
         form_layout.addRow("Reminders?", self.reminders_checkbox)
+
 
         self.reminders_container = QWidget()
         reminders_layout = QFormLayout(self.reminders_container)
@@ -82,14 +89,26 @@ class MainWindow(QMainWindow):
         back_btn = QPushButton("Back")
         back_btn.setFixedSize(100, 45)
         
-        submit_btn = QPushButton("Submit")
-        submit_btn.setFixedSize(120, 45)
+        self.submit_btn = QPushButton("Submit")
+        self.submit_btn.setFixedSize(120, 45)
+        self.submit_btn.setEnabled(False)
         
         bottom_layout.addWidget(back_btn)
         bottom_layout.addStretch() 
-        bottom_layout.addWidget(submit_btn)
+        bottom_layout.addWidget(self.submit_btn)
         
         main_layout.addLayout(bottom_layout)
+
+        self.title_input.textChanged.connect(self.validate_form)
+
+    def toggle_reminders(self, checked):
+        self.reminders_container.setVisible(checked)
+
+    def validate_form(self):
+        if self.title_input.text().strip():
+            self.submit_btn.setEnabled(True)
+        else:
+            self.submit_btn.setEnabled(False)
 
     def toggle_reminders(self, checked):
         self.reminders_container.setVisible(checked)
