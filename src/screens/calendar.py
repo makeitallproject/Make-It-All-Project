@@ -43,19 +43,10 @@ class CalendarApp(QWidget):
         self.setMinimumSize(700, 560)
         self.setStyleSheet(
             """
-            QWidget {
-                background-color: white;
-                color: black;
-            }
             QPushButton {
-                background-color: white;
-                border: 1px solid black;
+                border: 1px solid;
                 padding: 8px 12px;
                 font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #eeeeee;
-            }
             """
         )
 
@@ -73,7 +64,7 @@ class CalendarApp(QWidget):
         if is_manager:
             self.add_task_btn = QPushButton("Add a task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
-            self.add_task_window = AddTask(self.calendar)
+            #self.add_task_window = AddTask(self.calendar)
             self.add_task_btn.setMinimumSize(70, 60)
 
         #create logo
@@ -96,7 +87,7 @@ class CalendarApp(QWidget):
         self.show_tasks.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.show_tasks.setMinimumHeight(58)
         self.show_tasks.setStyleSheet(
-            "border: 4px solid black; font-size: 20px; padding: 8px;"
+            "border: 4px; font-size: 20px; padding: 8px;"
         )
 
         #create header
@@ -175,9 +166,9 @@ class CalendarApp(QWidget):
 
     def clicked_add_task_btn(self):
         """
-        show new window for adding tasks
+        show new window for adding tasks, this will link to Evan's screen (when it exists)
         """
-        self.add_task_window.show()
+        #self.add_task_window.show()
 
 
 
@@ -187,21 +178,8 @@ class SpecialCalendar(QCalendarWidget):
 
         self.setStyleSheet("""
             /* top navigation bar (month/year buttons) */
-            QCalendarWidget QWidget#qt_calendar_navigationbar {
-                background-color: #ffd700;
-            }
             QCalendarWidget QToolButton {
-                color: white;
-                background: white;
                 font-size: 14px;
-            }
-            QCalendarWidget QToolButton:hover {
-                background-color: black;
-            }
-
-            /* dates from the previous/next month */
-            QCalendarWidget QAbstractItemView:disabled {
-                color: #aaa;
             }
         """)
 
@@ -210,15 +188,7 @@ class SpecialCalendar(QCalendarWidget):
             draw red dots on calendar to show there are tasks due on that date
             """
 
-            #draw cell differently if selected
-            if date == self.selectedDate():
-                painter.save()
-                painter.fillRect(rect, QColor("#ffd700"))      # selection fill
-                painter.setPen(QColor("black"))                # selection text
-                painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, str(date.day()))
-                painter.restore()
-            else:
-                super().paintCell(painter, rect, date)
+            super().paintCell(painter, rect, date)
     
             #see if there are tasks on that date
             count = 0
@@ -245,77 +215,69 @@ class SpecialCalendar(QCalendarWidget):
             painter.restore()
 
 
-class AddTask(QWidget):
-    def __init__(self,calendar):
-            super().__init__()
+# class AddTask(QWidget):
+#     def __init__(self,calendar):
+#             super().__init__()
     
-            self.setWindowTitle("Add Task")
-            self.setGeometry(300,300,400,300)
-            self.setStyleSheet(
-                """
-                QWidget {
-                    background-color: white;
-                    color: black;
-                }
-                QPushButton {
-                    background-color: white;
-                    border: 1px solid black;
-                    padding: 8px 12px;
-                    font-size: 13px;
-                }
-                QPushButton:hover {
-                    background-color: #eeeeee;
-                }
-                """
-            )
+#             self.setWindowTitle("Add Task")
+#             self.setGeometry(300,300,400,300)
+#             self.setStyleSheet(
+#                 """
+#                 QPushButton {
+#                     border: 1px solid;
+#                     padding: 8px 12px;
+#                     font-size: 13px;
+#                 }
+#                 """
+#             )
 
-            self.calendar = calendar
+#             self.calendar = calendar
 
 
 
-            #enter name of task
-            self.name_title = QLabel()
-            self.name_title.setText("Task Name:")
-            self.name_input = QLineEdit(self)
+#             #enter name of task
+#             self.name_title = QLabel()
+#             self.name_title.setText("Task Name:")
+#             self.name_input = QLineEdit(self)
 
-            #enter date of task ending
-            self.date_title = QLabel()
-            self.date_title.setText("\nTask Due Date: ")
-            self.calendar = SpecialCalendar()
+#             #enter date of task ending
+#             self.date_title = QLabel()
+#             self.date_title.setText("\nTask Due Date: ")
+#             self.calendar = SpecialCalendar()
 
-            #add "submit" button
-            self.submit_btn = QPushButton("Submit")
-            self.submit_btn.clicked.connect(self.clicked_submit_btn)
+#             #add "submit" button
+#             self.submit_btn = QPushButton("Submit")
+#             self.submit_btn.clicked.connect(self.clicked_submit_btn)
 
-            #add confirmation text
-            self.confirm_submit = QLabel()
+#             #add confirmation text
+#             self.confirm_submit = QLabel()
 
 
-            #create layout and add calendar
-            layout = QVBoxLayout()
-            layout.addWidget(self.name_title)
-            layout.addWidget(self.name_input)
-            layout.addWidget(self.date_title)
-            layout.addWidget(self.calendar)
-            layout.addWidget(self.submit_btn)
-            layout.addWidget(self.confirm_submit)
-            self.setLayout(layout)
+#             #create layout and add calendar
+#             layout = QVBoxLayout()
+#             layout.addWidget(self.name_title)
+#             layout.addWidget(self.name_input)
+#             layout.addWidget(self.date_title)
+#             layout.addWidget(self.calendar)
+#             layout.addWidget(self.submit_btn)
+#             layout.addWidget(self.confirm_submit)
+#             self.setLayout(layout)
 
-    def clicked_submit_btn(self):
-        """
-        No need to implement adding tasks at first prototype stage, so success and fail messages are toggled
-        """
+#     def clicked_submit_btn(self):
+#         """
+#         No need to implement adding tasks at first prototype stage, so success and fail messages are toggled
+#         """
         
-        success = "Task added successfully!"
-        fail = "Unable to add task."
+#         success = "Task added successfully!"
+#         fail = "Unable to add task."
 
-        if self.confirm_submit.text() == fail or self.confirm_submit.text() == "":
-            self.confirm_submit.setText(success)
+#         if self.confirm_submit.text() == fail or self.confirm_submit.text() == "":
+#             self.confirm_submit.setText(success)
 
-        elif self.confirm_submit.text() == success:
-            self.confirm_submit.setText(fail)
+#         elif self.confirm_submit.text() == success:
+#             self.confirm_submit.setText(fail)
 
-        self.calendar.updateCells()
+#         self.calendar.updateCells()
 
 if __name__ == "__main__":
     # This guard allows Calendar.py to be imported for testing without opening
