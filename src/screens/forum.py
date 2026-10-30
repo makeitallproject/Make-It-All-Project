@@ -204,6 +204,7 @@ QLabel#readerBody {
     font-size: 13px;
 }
 QLineEdit, QPlainTextEdit {
+    background-color: palette(base);
     border: 1px solid palette(mid);
     border-radius: 6px;
     padding: 4px 6px;
@@ -357,7 +358,6 @@ class TopicDialog(QDialog):
         self.create_button = QPushButton("Create topic")
         self.create_button.setObjectName("primaryButton")
         self.create_button.setEnabled(False)
-        self.create_button.setDefault(True)
         buttons.addButton(
             self.create_button, QDialogButtonBox.ButtonRole.AcceptRole
         )
@@ -366,6 +366,7 @@ class TopicDialog(QDialog):
         layout.addWidget(buttons)
 
         self.name_input.textChanged.connect(self.update_state)
+        self.name_input.returnPressed.connect(self.submit)
         for button in self.findChildren(QPushButton):
             button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.update_state()
