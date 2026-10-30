@@ -150,14 +150,12 @@ POSTS = [
     },
 ]
 
-# Type scale in px: 12 meta, 13 secondary, 14 UI, 15 reading, 16 section,
-# 18 pane title, 20 screen title, 24 post title.
+# Current type scale in px: 13 secondary, 14 UI, 15 reading, 16 section, 18 pane title, 20 screen title, 24 post title.
 STYLESHEET = """
 QWidget {
     font-size: 13px;
 }
 QFrame#panel {
-    background-color: palette(base);
     border: 1px solid palette(mid);
     border-radius: 8px;
 }
