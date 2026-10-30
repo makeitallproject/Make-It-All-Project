@@ -1,12 +1,4 @@
-"""Forum ("knowledge sharing") screen.
-
-Topics group posts about one subject. The screen has three panes: a list of
-topics, the feed for the selected topic, and a reader for the selected post.
-
-All data is hardcoded and kept in memory, so anything you create disappears
-when the app closes. Authentication is assumed: CURRENT_USER is whoever is
-"logged in" for this prototype.
-"""
+"""Forum (knowledge sharing) screen. Contains topics and posts."""
 
 import re
 import signal
@@ -15,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPalette, QPixmap
+from PyQt6.QtGui import QKeySequence, QPalette, QPixmap, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -27,7 +19,6 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QPlainTextEdit,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -44,6 +35,7 @@ if str(SRC_DIR) not in sys.path:
 
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
+from widgets.forum.growing_text_edit import GrowingTextEdit
 from widgets.forum.post_card import PostCard
 from widgets.forum.topic_row import TopicRow
 
@@ -400,12 +392,12 @@ class TopicDialog(QDialog):
 
 
 class ForumScreen(QWidget):
-    """Topics rail, post feed, and post reader in one window."""
+    """The 3-pane forum screen"""
 
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Knowledge Sharing")
+        self.setWindowTitle("Make-It-All Forum")
         self.setMinimumSize(1100, 700)
         self.setStyleSheet(STYLESHEET + primary_button_shades(self))
 
@@ -571,10 +563,9 @@ class ForumScreen(QWidget):
         body_label = QLabel("Body")
         body_label.setObjectName("fieldLabel")
         body_label.setFixedWidth(38)
-        self.post_body_input = QPlainTextEdit()
+        self.post_body_input = GrowingTextEdit()
         self.post_body_input.setPlaceholderText("What do you want to share?")
         self.post_body_input.setAccessibleName("Post body")
-        self.post_body_input.setFixedHeight(72)
         self.post_body_input.textChanged.connect(self.update_publish_state)
         body_row.addWidget(body_label, 0, Qt.AlignmentFlag.AlignTop)
         body_row.addWidget(self.post_body_input, 1)
@@ -585,9 +576,20 @@ class ForumScreen(QWidget):
         self.publish_button = QPushButton("Publish post")
         self.publish_button.setObjectName("primaryButton")
         self.publish_button.setEnabled(False)
+        self.publish_button.setToolTip("Publish post (Ctrl+Enter)")
         self.publish_button.clicked.connect(self.publish_post)
         footer.addWidget(self.publish_button)
         layout.addLayout(footer)
+
+        # Ctrl+Enter publishes while focus is anywhere in the composer.
+        self._publish_shortcuts = []
+        for sequence in ("Ctrl+Return", "Ctrl+Enter"):
+            shortcut = QShortcut(QKeySequence(sequence), composer)
+            shortcut.setContext(
+                Qt.ShortcutContext.WidgetWithChildrenShortcut
+            )
+            shortcut.activated.connect(self.publish_post)
+            self._publish_shortcuts.append(shortcut)
 
         return composer
 
@@ -824,6 +826,13 @@ class ForumScreen(QWidget):
         self.selected_topic_id = topic["id"]
         self.refresh_topic_list()
         self.select_topic(topic["id"])
+
+    def resizeEvent(self, event):  # type: ignore
+        super().resizeEvent(event)
+        # The body editor's maximum height follows the window height.
+        body = getattr(self, "post_body_input", None)
+        if body is not None:
+            body.refresh_height()
 
 
 if __name__ == "__main__":
