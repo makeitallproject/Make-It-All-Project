@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
         
         back_btn = QPushButton("Back")
         back_btn.setFixedSize(100, 45)
+        back_btn.clicked.connect(self.clicked_back_btn)
         
         self.submit_btn = QPushButton("Submit")
         self.submit_btn.setFixedSize(120, 45)
@@ -110,11 +111,16 @@ class MainWindow(QMainWindow):
         else:
             self.submit_btn.setEnabled(False)
 
-    def toggle_reminders(self, checked):
-        self.reminders_container.setVisible(checked)
+    def browse_for_document(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Document", "", "All Files (*)")
+        if file_path:
+            self.docs_input.setText(file_path)
 
 
-# Added this __name__ bit to ensure the window doesn't immediately open when its run from calendar.py
+    def clicked_back_btn(self):
+        self.hide()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
