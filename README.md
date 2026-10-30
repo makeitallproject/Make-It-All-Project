@@ -16,6 +16,8 @@
 uv run src/screens/calendar.py
 # View the kanban (board) screen
 uv run src/screens/kanban.py
+# View the knowledge sharing (forum) screen
+uv run src/screens/forum.py
 ```
 
 ## Development and contributing

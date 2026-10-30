@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(uv:*)",
+      "Shell(QT_QPA_PLATFORM=offscreen uv run *)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
