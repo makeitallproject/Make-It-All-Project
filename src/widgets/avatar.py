@@ -27,7 +27,7 @@ class Avatar(QLabel):
                 background-color: palette(midlight);
                 color: palette(text);
                 border-radius: {size // 2}px;
-                font-size: {max(9, size // 3)}px;
+                font-size: {max(10, size // 3)}px;
                 font-weight: bold;
             }}
             """

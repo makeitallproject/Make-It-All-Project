@@ -39,8 +39,13 @@ from widgets.forum.growing_text_edit import GrowingTextEdit
 from widgets.forum.post_card import PostCard
 from widgets.forum.topic_row import TopicRow
 
+# TODO un-hardcode these
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 CURRENT_USER = "Mish"
+
+# Keep the line width comfortable on wide screens
+# TODO this should be dynamic based on font size
+READING_MEASURE = 700
 
 TOPICS = [
     {
@@ -145,7 +150,12 @@ POSTS = [
     },
 ]
 
+# Type scale in px: 12 meta, 13 secondary, 14 UI, 15 reading, 16 section,
+# 18 pane title, 20 screen title, 24 post title.
 STYLESHEET = """
+QWidget {
+    font-size: 13px;
+}
 QFrame#panel {
     background-color: palette(base);
     border: 1px solid palette(mid);
@@ -160,46 +170,51 @@ QLabel#screenTitle {
     font-size: 20px;
     font-weight: 600;
 }
+QLabel#headerUser {
+    font-size: 14px;
+    font-weight: 600;
+}
 QLabel#muted {
     font-size: 12px;
     color: palette(placeholder-text);
 }
 QLabel#sectionTitle {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
 }
 QLabel#fieldLabel {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 QLabel#dialogTitle {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
 }
 QLabel#errorLabel {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 QLabel#topicTitle {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
 }
 QLabel#postTitle {
-    font-size: 21px;
+    font-size: 24px;
     font-weight: 600;
 }
 QLabel#readerAuthor {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 QLabel#readerBody {
-    font-size: 13px;
+    font-size: 15px;
 }
 QLineEdit, QPlainTextEdit {
     background-color: palette(base);
     border: 1px solid palette(mid);
     border-radius: 6px;
     padding: 4px 6px;
+    font-size: 14px;
     selection-background-color: palette(highlight);
     selection-color: palette(highlighted-text);
 }
@@ -210,6 +225,7 @@ QPushButton {
     border: 1px solid palette(mid);
     border-radius: 6px;
     padding: 4px 10px;
+    font-size: 14px;
 }
 QPushButton:hover {
     background-color: palette(light);
@@ -447,7 +463,7 @@ class ForumScreen(QWidget):
         user_row.setSpacing(6)
         user_row.addWidget(Avatar(CURRENT_USER, 28))
         user_name = QLabel(CURRENT_USER)
-        user_name.setObjectName("sectionTitle")
+        user_name.setObjectName("headerUser")
         user_row.addWidget(user_name)
         header.addLayout(user_row)
 
@@ -644,6 +660,7 @@ class ForumScreen(QWidget):
         self.reader_body = QLabel()
         self.reader_body.setObjectName("readerBody")
         self.reader_body.setWordWrap(True)
+        self.reader_body.setMaximumWidth(READING_MEASURE)
         self.reader_body.setAlignment(
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )

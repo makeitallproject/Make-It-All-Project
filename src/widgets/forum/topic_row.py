@@ -1,4 +1,3 @@
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from ..avatar import Avatar
@@ -27,11 +26,11 @@ class TopicRow(QWidget):
         text_layout.setSpacing(0)
 
         name_label = EllipsisLabel(topic["name"])
-        name_label.setStyleSheet("font-size: 13px; font-weight: 600;")
+        name_label.setStyleSheet("font-size: 14px; font-weight: 600;")
 
         count_label = QLabel(post_count_text(post_count))
         count_label.setStyleSheet(
-            "font-size: 11px; color: palette(placeholder-text);"
+            "font-size: 12px; color: palette(placeholder-text);"
         )
 
         text_layout.addWidget(name_label)

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 
 class EmptyState(QWidget):
-    """A basic empty placeholder that fills the box/pane with the provided title and description"""
+    """An empty placeholder with a title and description."""
 
     def __init__(self, title: str, description: str, parent=None):
         super().__init__(parent)
@@ -18,13 +18,13 @@ class EmptyState(QWidget):
         title_label = QLabel(title)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setWordWrap(True)
-        title_label.setStyleSheet("font-size: 13px; font-weight: 600;")
+        title_label.setStyleSheet("font-size: 14px; font-weight: 600;")
 
         description_label = QLabel(description)
         description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         description_label.setWordWrap(True)
         description_label.setStyleSheet(
-            "font-size: 12px; color: palette(placeholder-text);"
+            "font-size: 13px; color: palette(placeholder-text);"
         )
 
         layout.addWidget(title_label)

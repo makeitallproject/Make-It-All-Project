@@ -48,19 +48,19 @@ class PostCard(QPushButton):
                 border: 2px solid palette(highlight);
             }
             QLabel#cardTitle {
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 600;
             }
             QLabel#cardSnippet {
-                font-size: 12px;
+                font-size: 13px;
                 color: palette(placeholder-text);
             }
             QLabel#cardAuthor {
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 600;
             }
             QLabel#cardMeta {
-                font-size: 11px;
+                font-size: 12px;
                 color: palette(placeholder-text);
             }
             """
