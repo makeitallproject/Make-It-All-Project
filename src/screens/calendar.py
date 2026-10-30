@@ -46,14 +46,6 @@ class CalendarApp(QWidget):
         self.setWindowTitle("Calendar")
         self.setMinimumSize(700, 560)
         self.showMaximized()
-        self.setStyleSheet(
-            """
-            QPushButton {
-                border: 1px solid;
-                padding: 8px 12px;
-                font-size: 13px;
-            """
-        )
 
         #create calendar
         self.calendar = SpecialCalendar()
