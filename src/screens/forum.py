@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPalette, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -37,8 +37,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-# Running `uv run src/screens/forum.py` only puts src/screens on sys.path, but
-# the reusable widgets live in src/widgets. Add src/ so `widgets` is importable.
+# TODO: Fix this nonsense vvv
 SRC_DIR = Path(__file__).resolve().parents[1]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
@@ -55,17 +54,14 @@ TOPICS = [
     {
         "id": "software-development",
         "name": "Software Development",
-        "description": "Patterns, tooling, and engineering practice for the app.",
     },
     {
         "id": "software-issues",
         "name": "Software Issues",
-        "description": "Bugs, outages, and workarounds that actually work.",
     },
     {
         "id": "printing",
         "name": "Printing",
-        "description": "Printers, drivers, paper jams, and the eternal queue.",
     },
 ]
 
@@ -172,10 +168,6 @@ QLabel#screenTitle {
     font-size: 20px;
     font-weight: 600;
 }
-QLabel#screenSubtitle {
-    font-size: 12px;
-    color: palette(placeholder-text);
-}
 QLabel#muted {
     font-size: 12px;
     color: palette(placeholder-text);
@@ -242,16 +234,13 @@ QPushButton#primaryButton {
     font-weight: 600;
 }
 QPushButton#primaryButton:hover {
-    background-color: palette(highlight);
     border: 1px solid palette(dark);
 }
-QPushButton#primaryButton:pressed {
-    background-color: palette(mid);
-}
 QPushButton#primaryButton:disabled {
-    background-color: palette(midlight);
-    color: palette(button-text);
+    background-color: palette(base);
+    color: palette(placeholder-text);
     border: 1px solid palette(midlight);
+    font-weight: normal;
 }
 QPushButton#primaryButton:focus {
     border: 2px solid palette(highlighted-text);
@@ -312,6 +301,25 @@ def format_created(created: datetime) -> str:
     return created.strftime("%d %b %Y, %H:%M")
 
 
+def format_created_full(created: datetime) -> str:
+    """Full timestamp with seconds and timezone, used for tooltips."""
+    local = created.astimezone()
+    return local.strftime("%d %b %Y, %H:%M:%S %Z (%z)")
+
+
+def primary_button_shades(widget: QWidget) -> str:
+    """Derive hover and pressed shades from the theme's highlight colour."""
+    highlight = widget.palette().color(QPalette.ColorRole.Highlight)
+    return f"""
+QPushButton#primaryButton:hover {{
+    background-color: {highlight.darker(115).name()};
+}}
+QPushButton#primaryButton:pressed {{
+    background-color: {highlight.darker(135).name()};
+}}
+"""
+
+
 class TopicDialog(QDialog):
     """Form for creating a topic. Call exec() and check the result."""
 
@@ -319,7 +327,7 @@ class TopicDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("New topic")
         self.setMinimumWidth(420)
-        self.setStyleSheet(STYLESHEET)
+        self.setStyleSheet(STYLESHEET + primary_button_shades(self))
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 18)
@@ -327,11 +335,7 @@ class TopicDialog(QDialog):
 
         heading = QLabel("Create a topic")
         heading.setObjectName("dialogTitle")
-        subtitle = QLabel("Topics group posts about one subject.")
-        subtitle.setObjectName("muted")
-
         layout.addWidget(heading)
-        layout.addWidget(subtitle)
 
         form = QFormLayout()
         form.setSpacing(8)
@@ -340,13 +344,7 @@ class TopicDialog(QDialog):
         self.name_input.setPlaceholderText("e.g. Printing")
         self.name_input.setAccessibleName("Topic name")
 
-        self.description_input = QPlainTextEdit()
-        self.description_input.setPlaceholderText("What belongs in this topic?")
-        self.description_input.setAccessibleName("Topic description")
-        self.description_input.setFixedHeight(78)
-
         form.addRow("Name", self.name_input)
-        form.addRow("Description", self.description_input)
         layout.addLayout(form)
 
         self.error_label = QLabel()
@@ -368,11 +366,20 @@ class TopicDialog(QDialog):
         layout.addWidget(buttons)
 
         self.name_input.textChanged.connect(self.update_state)
+        for button in self.findChildren(QPushButton):
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_state()
         self.name_input.setFocus()
 
     def update_state(self) -> None:
         self.error_label.hide()
-        self.create_button.setEnabled(bool(self.name_input.text().strip()))
+        enabled = bool(self.name_input.text().strip())
+        self.create_button.setEnabled(enabled)
+        self.create_button.setCursor(
+            Qt.CursorShape.PointingHandCursor
+            if enabled
+            else Qt.CursorShape.ArrowCursor
+        )
 
     def submit(self) -> None:
         name = self.name_input.text().strip()
@@ -390,9 +397,6 @@ class TopicDialog(QDialog):
     def topic_name(self) -> str:
         return self.name_input.text().strip()
 
-    def topic_description(self) -> str:
-        return self.description_input.toPlainText().strip()
-
 
 class ForumScreen(QWidget):
     """Topics rail, post feed, and post reader in one window."""
@@ -402,7 +406,7 @@ class ForumScreen(QWidget):
 
         self.setWindowTitle("Knowledge Sharing")
         self.setMinimumSize(1100, 700)
-        self.setStyleSheet(STYLESHEET)
+        self.setStyleSheet(STYLESHEET + primary_button_shades(self))
 
         self.selected_topic_id = TOPICS[0]["id"]
         self.selected_post_id = None
@@ -426,9 +430,11 @@ class ForumScreen(QWidget):
 
         self.refresh_topic_list()
         self.select_topic(self.selected_topic_id)
+        for button in self.findChildren(QPushButton):
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_publish_state()
         self.topic_list.setFocus()
 
-    # --- layout -----------------------------------------------------------
 
     def build_header(self) -> QHBoxLayout:
         header = QHBoxLayout()
@@ -490,6 +496,7 @@ class ForumScreen(QWidget):
 
         self.topic_list = QListWidget()
         self.topic_list.setObjectName("topicList")
+        self.topic_list.setCursor(Qt.CursorShape.PointingHandCursor)
         self.topic_list.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
@@ -508,27 +515,10 @@ class ForumScreen(QWidget):
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(10)
 
-        header = QVBoxLayout()
-        header.setSpacing(2)
-
-        title_row = QHBoxLayout()
         self.feed_title = QLabel()
         self.feed_title.setObjectName("topicTitle")
         self.feed_title.setWordWrap(True)
-        self.post_count_label = QLabel()
-        self.post_count_label.setObjectName("muted")
-        title_row.addWidget(self.feed_title, 1)
-        title_row.addWidget(
-            self.post_count_label, 0, Qt.AlignmentFlag.AlignBottom
-        )
-
-        self.feed_description = QLabel()
-        self.feed_description.setObjectName("muted")
-        self.feed_description.setWordWrap(True)
-
-        header.addLayout(title_row)
-        header.addWidget(self.feed_description)
-        layout.addLayout(header)
+        layout.addWidget(self.feed_title)
         layout.addWidget(self.build_composer())
 
         scroll = QScrollArea()
@@ -674,7 +664,6 @@ class ForumScreen(QWidget):
         layout.addWidget(self.reader_stack, 1)
         return panel
 
-    # --- behaviour --------------------------------------------------------
 
     def on_topic_changed(self, current, _previous) -> None:
         if current is None:
@@ -701,7 +690,6 @@ class ForumScreen(QWidget):
         self.topic_list.blockSignals(False)
 
         self.feed_title.setText(topic["name"])
-        self.feed_description.setText(topic["description"])
         self.refresh_feed()
 
         posts = posts_for(topic_id)
@@ -724,6 +712,7 @@ class ForumScreen(QWidget):
         self.reader_avatar.set_name(post["author"])
         self.reader_author.setText(post["author"])
         self.reader_date.setText(format_created(post["created"]))
+        self.reader_date.setToolTip(format_created_full(post["created"]))
         self.reader_body.setText(post["body"])
         scroll_bar = self.reader_scroll.verticalScrollBar()
         if scroll_bar is not None:
@@ -788,7 +777,13 @@ class ForumScreen(QWidget):
     def update_publish_state(self) -> None:
         has_title = bool(self.post_title_input.text().strip())
         has_body = bool(self.post_body_input.toPlainText().strip())
-        self.publish_button.setEnabled(has_title and has_body)
+        enabled = has_title and has_body
+        self.publish_button.setEnabled(enabled)
+        self.publish_button.setCursor(
+            Qt.CursorShape.PointingHandCursor
+            if enabled
+            else Qt.CursorShape.ArrowCursor
+        )
 
     def publish_post(self) -> None:
         title = self.post_title_input.text().strip()
@@ -822,7 +817,6 @@ class ForumScreen(QWidget):
         topic = {
             "id": make_topic_id(name),
             "name": name,
-            "description": dialog.topic_description() or "No description yet.",
         }
         TOPICS.append(topic)
 

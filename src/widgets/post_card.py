@@ -4,16 +4,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from .avatar import Avatar
-
-SNIPPET_LENGTH = 120
-
-
-def make_snippet(body: str) -> str:
-    """Flatten a post body into a single short line for the feed."""
-    collapsed = " ".join(body.split())
-    if len(collapsed) <= SNIPPET_LENGTH:
-        return collapsed
-    return collapsed[:SNIPPET_LENGTH].rstrip() + "…"
+from .truncation import EllipsisLabel
 
 
 class PostCard(QFrame):
@@ -74,9 +65,8 @@ class PostCard(QFrame):
         title.setObjectName("cardTitle")
         title.setWordWrap(True)
 
-        snippet = QLabel(make_snippet(post["body"]))
+        snippet = EllipsisLabel(post["body"])
         snippet.setObjectName("cardSnippet")
-        snippet.setWordWrap(True)
 
         footer = QHBoxLayout()
         footer.setSpacing(6)
@@ -94,11 +84,6 @@ class PostCard(QFrame):
         layout.addWidget(title)
         layout.addWidget(snippet)
         layout.addLayout(footer)
-
-        # Clicks on the labels should select the whole card, not just the
-        # parts of the frame that are not covered by a child widget.
-        for child in self.findChildren(QWidget):
-            child.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def set_selected(self, selected: bool) -> None:
         """Repaint the card when the reader switches to another post."""
