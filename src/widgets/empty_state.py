@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 
 class EmptyState(QWidget):
-    """Explains an empty area and what would fill it."""
+    """A basic empty placeholder that fills the box/pane with the provided title and description"""
 
     def __init__(self, title: str, description: str, parent=None):
         super().__init__(parent)

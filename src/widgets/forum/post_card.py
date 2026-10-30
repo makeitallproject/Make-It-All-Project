@@ -1,14 +1,12 @@
-"""A clickable summary of a forum post, shown in the feed."""
-
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from .avatar import Avatar
-from .truncation import EllipsisLabel
+from ..avatar import Avatar
+from ..truncation import EllipsisLabel
 
 
 class PostCard(QFrame):
-    """One row of the feed. Emits the post id when clicked or activated."""
+    """A clickable post in the middle pane"""
 
     clicked = pyqtSignal(int)
 

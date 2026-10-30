@@ -1,10 +1,8 @@
-"""One row in the topic list: avatar, name, and post count."""
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from .avatar import Avatar
-from .truncation import EllipsisLabel
+from ..avatar import Avatar
+from ..truncation import EllipsisLabel
 
 
 def post_count_text(count: int) -> str:
@@ -12,7 +10,7 @@ def post_count_text(count: int) -> str:
 
 
 class TopicRow(QWidget):
-    """A row widget placed inside a QListWidgetItem."""
+    """A clickable topic item in the left sidebar"""
 
     def __init__(self, topic: dict, post_count: int, parent=None):
         super().__init__(parent)
@@ -40,9 +38,3 @@ class TopicRow(QWidget):
         text_layout.addWidget(count_label)
 
         layout.addLayout(text_layout, 1)
-
-        # Let mouse clicks reach the QListWidget underneath, so selecting a
-        # topic and moving through the list with the keyboard keep working.
-        # for child in self.findChildren(QWidget):
-        #     child.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        # self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)

@@ -44,8 +44,8 @@ if str(SRC_DIR) not in sys.path:
 
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
-from widgets.post_card import PostCard
-from widgets.topic_row import TopicRow
+from widgets.forum.post_card import PostCard
+from widgets.forum.topic_row import TopicRow
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 CURRENT_USER = "Mish"
@@ -736,7 +736,7 @@ class ForumScreen(QWidget):
             self.feed_layout.addWidget(
                 EmptyState(
                     "No posts yet",
-                    "Write the first post for this topic below.",
+                    "Write the first post for this topic above.",
                 )
             )
             self.feed_layout.addStretch()
@@ -826,7 +826,7 @@ class ForumScreen(QWidget):
 
 
 if __name__ == "__main__":
-    # Make Ctrl+C work when the screen is run on its own.
+    # Make Ctrl+C work
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
     window = ForumScreen()
