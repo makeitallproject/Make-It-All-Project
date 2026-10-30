@@ -1,5 +1,3 @@
-"""A centred placeholder for areas that have nothing to show yet."""
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 

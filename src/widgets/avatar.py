@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QLabel
 
 
 def get_initials(name: str) -> str:
-    """Return up to two initials: "Tobi L" becomes "TL"."""
+    """Return up to two initials of a name"""
     words = name.split()
     if not words:
         return "?"
