@@ -1,17 +1,21 @@
 import sys
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QDate, QTime
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, 
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
                              QPushButton, QLabel, QLineEdit, QCheckBox,
-                             QComboBox, QTextEdit, QDateEdit)
+                             QComboBox, QTextEdit, QDateEdit, QTimeEdit, 
+                             QFileDialog)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        #top section of the page e.g. company logo
         logo_label = QLabel()
         pixmap = QPixmap("assets/company_logo.png")
         logo_label.setPixmap(pixmap.scaled(180, 90, Qt.AspectRatioMode.KeepAspectRatio))
+        
         self.setWindowTitle("Create New Task")
         self.resize(600, 700)
 
@@ -21,60 +25,83 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(40, 40, 40, 40)
         main_layout.setSpacing(30)
 
-        #top section of the page e.g. company logo
+        #top section layout
         top_layout = QHBoxLayout()
-        
         top_layout.addWidget(logo_label)
         top_layout.addStretch() 
-        
         main_layout.addLayout(top_layout)
         main_layout.addSpacing(20) 
 
         #middle section of the page e.g. the form
         form_layout = QFormLayout()
-
         form_layout.setSpacing(20)
         
         self.title_input = QLineEdit()
+        self.title_input.setMinimumHeight(35)
+        
         self.notes_input = QTextEdit()
         self.notes_input.setMinimumHeight(80)
+        
         self.people_input = QComboBox()
         self.people_input.addItems(["Unassigned", "Evan", "Mish", "Charles", "Tobi", "Kipras", "Louis"])
         self.people_input.setMinimumHeight(35)
+        
         self.due_input = QDateEdit()
         self.due_input.setCalendarPopup(True) 
+        self.due_input.setDate(QDate.currentDate())
+        self.due_input.setDisplayFormat("dd/MM/yyyy")
         self.due_input.setMinimumHeight(35)
-        self.docs_input = QLineEdit()
-
-        for input_field in [self.title_input, self.people_input, self.due_input, self.docs_input]:
-            input_field.setMinimumHeight(35)
         
-        form_layout.addRow("Task Title", self.title_input)
-        form_layout.addRow("Task Notes", self.notes_input)
-        form_layout.addRow("People to give task to", self.people_input)
-        form_layout.addRow("Due", self.due_input)
-        form_layout.addRow("Insert documents", self.docs_input)
+        #documents form container
+        self.docs_container = QWidget()
+        docs_layout = QHBoxLayout(self.docs_container)
+        docs_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.docs_input = QLineEdit()
+        self.docs_input.setPlaceholderText("No file selected...")
+        self.docs_input.setReadOnly(True)
+        self.docs_input.setMinimumHeight(35)
+        
+        self.docs_btn = QPushButton("Browse...")
+        self.docs_btn.setMinimumHeight(35)
+        self.docs_btn.clicked.connect(self.browse_for_document)
+        
+        docs_layout.addWidget(self.docs_input)
+        docs_layout.addWidget(self.docs_btn)
+
+        #form rows
+        form_layout.addRow("Task title", self.title_input)
+        form_layout.addRow("Task notes", self.notes_input)
+        form_layout.addRow("Assign to", self.people_input)
+        form_layout.addRow("Due date", self.due_input)
+        form_layout.addRow("Documents", self.docs_container) 
         
         main_layout.addLayout(form_layout)
 
-        #this is the bottom reminders checkbox section
+        #bottom reminders checkbox section
         self.reminders_checkbox = QCheckBox("Section below expands if this is checked")
         form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
         form_layout.addRow("Reminders?", self.reminders_checkbox)
-
 
         self.reminders_container = QWidget()
         reminders_layout = QFormLayout(self.reminders_container)
         reminders_layout.setContentsMargins(0, 10, 0, 0) 
         reminders_layout.setSpacing(20)
         
-        self.dates_input = QLineEdit()
-        self.times_input = QLineEdit()
+        #reminder date and time pickers
+        self.dates_input = QDateEdit()
+        self.dates_input.setCalendarPopup(True)
+        self.dates_input.setDate(QDate.currentDate())
+        self.dates_input.setDisplayFormat("dd/MM/yyyy")
         self.dates_input.setMinimumHeight(35)
+        
+        self.times_input = QTimeEdit()
+        self.times_input.setTime(QTime.currentTime())
+        self.times_input.setDisplayFormat("HH:mm") 
         self.times_input.setMinimumHeight(35)
         
-        reminders_layout.addRow("Dates", self.dates_input)
-        reminders_layout.addRow("Times", self.times_input)
+        reminders_layout.addRow("Reminder date", self.dates_input)
+        reminders_layout.addRow("Reminder time", self.times_input)
 
         self.reminders_container.setVisible(False)
         main_layout.addWidget(self.reminders_container)

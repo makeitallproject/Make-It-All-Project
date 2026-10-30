@@ -189,6 +189,8 @@ class CalendarApp(QWidget):
         """
         show Tobi's log in window
         """
+        self.logout_window.password_input.setText("")
+        self.logout_window.username_input.setText("")
         self.logout_window.show()
         self.hide()
 
