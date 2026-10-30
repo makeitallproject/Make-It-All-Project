@@ -706,7 +706,7 @@ class ForumScreen(QWidget):
 
         self.selected_post_id = post_id
         for card in self.feed_container.findChildren(PostCard):
-            card.set_selected(card.post_id == post_id)
+            card.setChecked(card.post_id == post_id)
 
         self.reader_title.setText(post["title"])
         self.reader_avatar.set_name(post["author"])
@@ -744,7 +744,7 @@ class ForumScreen(QWidget):
 
         for post in posts:
             card = PostCard(post)
-            card.clicked.connect(self.select_post)
+            card.opened.connect(self.select_post)
             self.feed_layout.addWidget(card)
         self.feed_layout.addStretch()
 

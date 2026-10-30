@@ -1,39 +1,50 @@
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+)
 
 from ..avatar import Avatar
 from ..truncation import EllipsisLabel
 
 
-class PostCard(QFrame):
+class PostCard(QPushButton):
     """A clickable post in the middle pane"""
 
-    clicked = pyqtSignal(int)
+    opened = pyqtSignal(int)
 
     def __init__(self, post: dict, parent=None):
-        super().__init__(parent)
+        super().__init__("", parent)
         self.post_id = post["id"]
 
         self.setObjectName("postCard")
+        self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
         self.setAccessibleName(f"Post: {post['title']}")
-        self.setProperty("selected", False)
         self.setStyleSheet(
             """
-            QFrame#postCard {
+            QPushButton#postCard {
                 background-color: palette(base);
-                border: 1px solid palette(mid);
+                border: 2px solid palette(mid);
                 border-radius: 8px;
             }
-            QFrame#postCard:hover {
+            QPushButton#postCard:hover {
                 background-color: palette(light);
             }
-            QFrame#postCard[selected="true"] {
+            QPushButton#postCard:pressed {
+                background-color: palette(midlight);
+            }
+            QPushButton#postCard:checked {
                 background-color: palette(light);
                 border: 2px solid palette(highlight);
             }
-            QFrame#postCard:focus {
+            QPushButton#postCard:focus {
                 border: 2px solid palette(highlight);
             }
             QLabel#cardTitle {
@@ -83,25 +94,21 @@ class PostCard(QFrame):
         layout.addWidget(snippet)
         layout.addLayout(footer)
 
-    def set_selected(self, selected: bool) -> None:
-        """Repaint the card when the reader switches to another post."""
-        self.setProperty("selected", selected)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        self.clicked.connect(self._emit_opened)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.setFocus()
-            self.clicked.emit(self.post_id)
-        super().mousePressEvent(event)
+    def _emit_opened(self, _checked: bool = False) -> None:
+        """Pass the post id on when the button is activated."""
+        self.opened.emit(self.post_id)
 
-    def keyPressEvent(self, event):
-        # Space, Enter and Return activate the card so it works without a mouse.
-        if event.key() in (
-            Qt.Key.Key_Space,
-            Qt.Key.Key_Return,
-            Qt.Key.Key_Enter,
-        ):
-            self.clicked.emit(self.post_id)
-            return
-        super().keyPressEvent(event)
+    def sizeHint(self) -> QSize:
+        # Make the button behave like a frame sizing-wise
+        layout = self.layout()
+        if layout is not None:
+            return layout.sizeHint()
+        return super().sizeHint()
+
+    def minimumSizeHint(self) -> QSize:
+        layout = self.layout()
+        if layout is not None:
+            return layout.minimumSize()
+        return super().minimumSizeHint()
