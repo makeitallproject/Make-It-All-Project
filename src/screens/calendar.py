@@ -89,7 +89,7 @@ class CalendarApp(QWidget):
         )
 
         #create header
-        self.header = AppHeader("Make-It-All Calendar", user=self.current_user)
+        self.header = AppHeader("Make-It-All System", user=self.current_user)
 
         #create row for buttons
         button_row = QHBoxLayout()
@@ -147,6 +147,10 @@ class CalendarApp(QWidget):
         """
         if self.all_tasks_window is None:
             self.all_tasks_window = kanban.KanbanScreen(user=self.current_user)
+            # allow the button in the header to re-focus/re-open this window
+            self.all_tasks_window.header.back_requested.connect(
+                lambda: self.back_to_calendar(self.all_tasks_window)
+            )
         self.show_window(self.all_tasks_window)
 
     def clicked_knowledge_btn(self):
@@ -155,6 +159,9 @@ class CalendarApp(QWidget):
         """
         if self.knowledge_window is None:
             self.knowledge_window = forum.ForumScreen(user=self.current_user)
+            self.knowledge_window.header.back_requested.connect(
+                lambda: self.back_to_calendar(self.knowledge_window)
+            )
             self.show_window(self.knowledge_window, maximized=True)
         else:
             self.show_window(self.knowledge_window)
@@ -191,6 +198,13 @@ class CalendarApp(QWidget):
             self.add_task_window,
         )
         return [window for window in windows if window is not None]
+
+    def back_to_calendar(self, window):
+        """
+        close a child screen and focus the calendar
+        """
+        window.close()
+        self.show_window(self)
 
     def show_window(self, window, maximized=False):
         if maximized:

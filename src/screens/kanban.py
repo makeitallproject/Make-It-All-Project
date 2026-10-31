@@ -512,7 +512,7 @@ class KanbanScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        self.header = AppHeader("Make-It-All Tasks Board", user=user)
+        self.header = AppHeader("Tasks Board", user=user, back_to_calendar=True)
         root.addWidget(self.header)
 
         board_max_width = (

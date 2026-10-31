@@ -1,5 +1,6 @@
 """Entry point for the application"""
 
+import signal
 import sys
 
 from PyQt6.QtWidgets import QApplication
@@ -9,15 +10,18 @@ from screens.login import LoginWindow
 
 
 def main() -> int:
+    # Make Ctrl+C in the terminal close the application
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     app = QApplication(sys.argv)
     app.setApplicationName("Make-It-All")
 
+    # Initial window is login screen, then calendar screen
     window = LoginWindow()
-
     calendar_window = calendar.CalendarApp(window)
     calendar_window.hide()
 
-    # previewing with a default password
+    # For the prototype, we accept any username/password
     def on_login(username: str, _password: str) -> None:
         window.hide()
         calendar_window.set_user(username)

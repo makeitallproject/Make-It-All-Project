@@ -409,7 +409,7 @@ class ForumScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        self.header = AppHeader("Make-It-All Forum", user=user)
+        self.header = AppHeader("Forum", user=user, back_to_calendar=True)
         root.addWidget(self.header)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
