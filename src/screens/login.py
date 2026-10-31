@@ -66,7 +66,7 @@ class LoginWindow(QWidget):
         main_layout.setContentsMargins(16, 16, 16, 16)
         main_layout.setSpacing(12)
         main_layout.addWidget(
-            AppHeader("Make-It-All", subtitle="Welcome back")
+            AppHeader("Make-It-All")
         )
         main_layout.addWidget(self.build_form_area(), 1)
 

@@ -32,7 +32,6 @@ class AppHeader(QWidget):
     def __init__(
         self,
         title: str,
-        subtitle: str = "",
         user: str = "",
         parent=None,
     ):
@@ -49,12 +48,6 @@ class AppHeader(QWidget):
         self.title_label = QLabel(title)
         self.title_label.setObjectName("screenTitle")
         titles.addWidget(self.title_label)
-
-        self.subtitle_label = None
-        if subtitle:
-            self.subtitle_label = QLabel(subtitle)
-            self.subtitle_label.setObjectName("muted")
-            titles.addWidget(self.subtitle_label)
 
         layout.addLayout(titles)
         layout.addStretch()

@@ -40,7 +40,6 @@ class MainWindow(QMainWindow):
 
         self.header = AppHeader(
             "New task",
-            subtitle="Add work to the board",
             user=user,
         )
         main_layout.addWidget(self.header)

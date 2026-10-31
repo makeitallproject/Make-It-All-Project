@@ -79,7 +79,6 @@ class CalendarApp(QWidget):
 
         self.header = AppHeader(
             "Make-It-All Calendar",
-            subtitle="Team calendar",
             user=self.current_user,
         )
 
