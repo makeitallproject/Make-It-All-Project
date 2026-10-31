@@ -1,99 +1,74 @@
-import sys
-import signal
-from screens import login, task, kanban
-from pathlib import Path
-from datetime import date
+"""Calendar screen with a day summary and links to the other screens."""
 
-# QDate is used for Qt widgets and calendar calculations; date is used as a
-# simple dictionary key for storing tasks independently of the UI.
-from PyQt6.QtCore import QDate, Qt, QPoint
-from PyQt6.QtGui import QFont, QPainter, QColor, QPixmap
+import signal
+import sys
+
+from PyQt6.QtCore import QDate, QPoint, Qt
+from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import (
     QApplication,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGridLayout,
+    QCalendarWidget,
+    QFrame,
     QHBoxLayout,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
     QPushButton,
-    QSizePolicy,
-    QSpinBox,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
-    QCalendarWidget,
-    QLineEdit,
-    QFrame,
-    QSpacerItem
 )
 
-is_manager = True
+from screens import kanban, login, task
+from widgets.app_header import AppHeader
 
-task_list = [{"date" : QDate(2026, 10, 30), "tasks": [{"name" : "Finish Team Project", "completed": False},{"name" : "Team networking event", "completed": True}]},
-             {"date" : QDate(2026, 10, 18), "tasks": [{"name" : "Finish Team Project", "completed": False}]},]
+IS_MANAGER = True
+CURRENT_USER = "Mish"
+
+task_list = [
+    {
+        "date": QDate(2026, 10, 30),
+        "tasks": [
+            {"name": "Finish Team Project", "completed": False},
+            {"name": "Team networking event", "completed": True},
+        ],
+    },
+    {
+        "date": QDate(2026, 10, 18),
+        "tasks": [{"name": "Finish Team Project", "completed": False}],
+    },
+]
+
 
 class CalendarApp(QWidget):
-
     def __init__(self, login_window):
         super().__init__()
 
-        self.setWindowTitle("Calendar")
+        self.setWindowTitle("Make-It-All Calendar")
         self.setMinimumSize(700, 560)
 
-
         self.login_window = login_window
+        self.current_user = CURRENT_USER
 
-        #create calendar
         self.calendar = SpecialCalendar()
         self.calendar.selectionChanged.connect(self.on_date_selected)
         self.calendar.setSelectedDate(QDate.currentDate())
 
-        #create view tasks button
-        self.all_tasks_btn = QPushButton("View Tasks")
-        self.all_tasks_window = kanban.KanbanScreen()
-        self.all_tasks_btn_pressed = False
+        self.all_tasks_btn = QPushButton("View tasks")
         self.all_tasks_btn.clicked.connect(self.clicked_all_tasks_btn)
-        self.all_tasks_btn.setMinimumSize(70, 60)
+        self.all_tasks_window = kanban.KanbanScreen()
 
-        #create knowledge sharing button
-        self.knowledge_btn = QPushButton("View Knowledge")
-        #self.logout_window = kanban.KanbanScreen()
+        self.knowledge_btn = QPushButton("View knowledge")
         self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
-        self.knowledge_btn.setMinimumSize(70, 60)
 
-        #create log out button
-        self.logout_btn = QPushButton("Log Out")
-        self.logout_window = self.login_window
+        self.logout_btn = QPushButton("Log out")
         self.logout_btn.clicked.connect(self.clicked_logout_btn)
 
-        #create add task button
-        if is_manager:
-            self.add_task_btn = QPushButton("Add a task")
+        if IS_MANAGER:
+            self.add_task_btn = QPushButton("Add task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
             self.add_task_window = task.MainWindow()
-            self.add_task_btn.setMinimumSize(70, 60)
 
+        for button in self.action_buttons():
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        #create logo
-        self.logo = QLabel()
-        self.logo.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-        self.logo.setMaximumSize(280, 78)
-        logo_path = Path("assets") / "company_logo.png"
-        self.logo.setPixmap(
-            QPixmap(str(logo_path)).scaled(
-                270,
-                70,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-        )
-
-        #create show task button
         self.show_tasks = QLabel("Select a day to view its tasks")
         self.show_tasks.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.show_tasks.setMinimumHeight(58)
@@ -101,149 +76,115 @@ class CalendarApp(QWidget):
             "border: 4px; font-size: 20px; padding: 8px;"
         )
 
-        #create header
-        header = QWidget()
-        header.setMinimumHeight(185)
-        header_layout = QVBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 12)
-        header_layout.setSpacing(0)
+        self.header = AppHeader(
+            "Make-It-All Calendar",
+            subtitle="Team calendar",
+            user=self.current_user,
+        )
 
-        #create row for logo
-        logo_row = QHBoxLayout()
-        logo_row.setContentsMargins(0, 0, 0, 0)
-        logo_row.addStretch()
-        logo_row.addWidget(self.logout_btn)
-        logo_row.addSpacerItem(QSpacerItem(1185, 20, QSizePolicy.Policy.Expanding))
-        logo_row.addWidget(self.logo)
-
-        #add logo row to header
-        header_layout.addLayout(logo_row)
-        header_layout.addStretch()
-
-        #create row for buttons
-        button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 0, 0, 0)
-        button_row.setSpacing(10)
-        button_row.addWidget(self.all_tasks_btn)
-        button_row.addWidget(self.knowledge_btn)
-        if is_manager:
-            button_row.addWidget(self.add_task_btn)
-        button_row.addStretch()
-
-        #add button row to header
-        header_layout.addLayout(button_row)
-
-        #create layout for calendar and tasks
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(header)
-
-        #create frame and box for calendar
         calendar_frame = QFrame()
         calendar_frame.setFrameShape(QFrame.Shape.Box)
         calendar_frame.setLineWidth(4)
         calendar_layout = QVBoxLayout(calendar_frame)
         calendar_layout.setContentsMargins(16, 14, 16, 14)
         calendar_layout.addWidget(self.calendar)
-        layout.addWidget(calendar_frame, 1)
-        layout.addWidget(self.show_tasks)
-        self.setLayout(layout)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(16, 16, 16, 16)
+        root.setSpacing(12)
+        root.addWidget(self.header)
+        root.addLayout(self.build_action_row())
+        root.addWidget(calendar_frame, 1)
+        root.addWidget(self.show_tasks)
+
         self.on_date_selected()
 
-    def on_date_selected(self):
-        """
-        display a box with tasks in
-        """
+    def action_buttons(self) -> list[QPushButton]:
+        buttons = [self.all_tasks_btn, self.knowledge_btn, self.logout_btn]
+        if IS_MANAGER:
+            buttons.append(self.add_task_btn)
+        return buttons
+
+    def build_action_row(self) -> QHBoxLayout:
+        row = QHBoxLayout()
+        row.setSpacing(8)
+        row.addWidget(self.all_tasks_btn)
+        row.addWidget(self.knowledge_btn)
+        if IS_MANAGER:
+            row.addWidget(self.add_task_btn)
+        row.addStretch()
+        row.addWidget(self.logout_btn)
+        return row
+
+    def on_date_selected(self) -> None:
+        """Show the tasks due on the selected day."""
         selected_date = self.calendar.selectedDate()
 
-        #if selected date has tasks, show them
         for day in task_list:
-             if day["date"] == selected_date:
-                task_txt = f"Tasks due on {selected_date.toString()}:\n"
-                for task in day["tasks"]:
-                    status = "Completed" if task["completed"] else "Incomplete"
-                    task_txt += f"{task['name']}, {status}\n"
+            if day["date"] != selected_date:
+                continue
 
-                self.show_tasks.setText(task_txt)
-                return
+            lines = [f"Tasks due on {selected_date.toString()}:"]
+            for task in day["tasks"]:
+                status = "Completed" if task["completed"] else "Incomplete"
+                lines.append(f"{task['name']}, {status}")
+            self.show_tasks.setText("\n".join(lines))
+            return
 
-        #otherwise, say there are no tasks due on this date
         self.show_tasks.setText("There are no tasks due on this date")
 
-    def clicked_all_tasks_btn(self):
-        """
-        show Mish's Kanban board window
-        """
+    def clicked_all_tasks_btn(self) -> None:
+        """Show the Kanban board."""
         self.all_tasks_window.show()
 
-    def clicked_knowledge_btn(self):
-        """
-        show Mish's knowledge sharing window
-        """
-        #self.knowledge_window.show()
+    def clicked_knowledge_btn(self) -> None:
+        """Show the knowledge-sharing screen."""
+        # self.knowledge_window.show()
 
-    def clicked_logout_btn(self):
-        """
-        show Tobi's log in window
-        """
-        self.logout_window.password_input.setText("")
-        self.logout_window.username_input.setText("")
-        self.logout_window.showMaximized()
+    def clicked_logout_btn(self) -> None:
+        """Return to the login screen."""
+        self.login_window.password_input.setText("")
+        self.login_window.username_input.setText("")
+        self.login_window.showMaximized()
         self.hide()
 
-    def clicked_add_task_btn(self):
-        """
-        show Evan's "add tasks" window
-        """
+    def clicked_add_task_btn(self) -> None:
+        """Show the create-task form."""
         self.add_task_window.show()
 
 
-
-
 class SpecialCalendar(QCalendarWidget):
-    def __init__(self):
-        super().__init__()
+    def paintCell(self, painter: QPainter, rect, date: QDate) -> None:
+        """Draw red dots under days that have tasks."""
+        super().paintCell(painter, rect, date)
 
-        
+        count = 0
+        for day in task_list:
+            if day["date"] == date:
+                count = len(day["tasks"])
+                break
 
-    def paintCell(self, painter: QPainter, rect, date: QDate):
-            """
-            draw red dots on calendar to show there are tasks due on that date
-            """
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#e74c3c"))
 
-            super().paintCell(painter, rect, date)
-    
-            #see if there are tasks on that date
-            count = 0
-            for day in task_list:
-                if day["date"] == date:
-                    count = len(day["tasks"])
-                    break
+        # Draw up to 10 small dots along the bottom of the cell.
+        dots = min(count, 10)
+        radius, gap = 3, 4
+        total_width = dots * (2 * radius) + (dots - 1) * gap
+        x = rect.center().x() - total_width // 2 + radius
+        y = rect.bottom() - radius - 3
+        for index in range(dots):
+            painter.drawEllipse(
+                QPoint(x + index * (2 * radius + gap), y), radius, radius
+            )
 
-     
-            painter.save()
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor("#e74c3c"))
-     
-            #draw up to 10 small dots along the bottom of the cell
-            dots = min(count, 10)
-            radius, gap = 3, 4
-            total_width = dots * (2 * radius) + (dots - 1) * gap
-            x = rect.center().x() - total_width // 2 + radius
-            y = rect.bottom() - radius - 3
-            for i in range(dots):
-                painter.drawEllipse(QPoint(x + i * (2 * radius + gap), y), radius, radius)
-     
-            painter.restore()
+        painter.restore()
 
 
 if __name__ == "__main__":
-    # This guard allows Calendar.py to be imported for testing without opening
-    # a window, while still supporting direct execution from the command line.
-
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
     login_window = login.LoginWindow()
     window = CalendarApp(login_window)

@@ -158,14 +158,6 @@ QFrame#composer {
     border: 1px solid palette(mid);
     border-radius: 8px;
 }
-QLabel#screenTitle {
-    font-size: 20px;
-    font-weight: 600;
-}
-QLabel#headerUser {
-    font-size: 14px;
-    font-weight: 600;
-}
 QLabel#muted {
     font-size: 12px;
     color: palette(placeholder-text);

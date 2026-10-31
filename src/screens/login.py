@@ -1,66 +1,32 @@
-# src > screens > login.py
-# @toblobs // last updated 27.10.26
+"""Login screen. Mocked authentication for the prototype."""
 
-from pathlib import Path
+import signal
+import sys
 
-from PyQt6.QtCore import Qt, pyqtSignal, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QPalette, QPen
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
-# logo panel
-class LogoPanel(QWidget):
-    
-    def __init__(self, parent = None):
-        
-        super().__init__(parent)
-        self.setFixedHeight(250)
-        
-        logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "company_logo.png"
-        self.logo = QPixmap(str(logo_path)) if logo_path else QPixmap()
-        
-    def paintEvent(self, event): # type: ignore
-        
-        # make a painter
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+from widgets.app_header import AppHeader
 
-        bounds = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
-        outline = QPainterPath()
-        outline.addRoundedRect(bounds, 35, 35)
 
-        painter.save()
-        painter.setClipPath(outline)
-
-        # paint logo
-        if not self.logo.isNull(): painter.drawPixmap(bounds, self.logo, QRectF(self.logo.rect()))
-        else: painter.fillPath(outline, self.palette().color(QPalette.ColorRole.Base))
-        
-        painter.setPen(self.palette().color(QPalette.ColorRole.Text))
-        # painter.drawText(bounds, Qt.AlignmentFlag.AlignCenter, "Make-It-All")
-
-        # cleanup
-        painter.restore()
-
-        painter.setPen(QPen(self.palette().color(QPalette.ColorRole.Mid), 1))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawPath(outline)
-        
-        painter.end()
-
-# login window form
 class LoginWindow(QWidget):
-
     login_requested = pyqtSignal(str, str)
 
     def __init__(self):
-        
         super().__init__()
 
-        self.setWindowTitle("Make-It-All Login Screen")
+        self.setWindowTitle("Make-It-All Login")
         self.resize(700, 560)
         self.setMinimumSize(700, 560)
-
         self.setObjectName("loginWindow")
 
         self.setStyleSheet(
@@ -71,7 +37,6 @@ class LoginWindow(QWidget):
                 color: palette(text);
                 font-size: 12px;
             }
-
             QLineEdit {
                 border: 1px solid palette(mid);
                 background-color: palette(base);
@@ -79,69 +44,67 @@ class LoginWindow(QWidget):
                 padding: 0 8px;
                 font-size: 12px;
             }
-
             QLineEdit:focus {
                 border: 2px solid palette(highlight);
             }
-
             QPushButton#enterButton {
                 border: 1px solid palette(mid);
                 background-color: palette(button);
                 color: palette(button-text);
                 font-size: 12px;
             }
-
             QPushButton#enterButton:hover {
                 background-color: palette(light);
             }
-
             QPushButton#enterButton:pressed {
                 background-color: palette(midlight);
             }
-            """)
+            """
+        )
 
-        # vertical layout for a rounded button
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
-        # logo label
-        self.logo_panel = LogoPanel()
-        main_layout.addWidget(self.logo_panel)        
-        
-        # form area
-        form_area = QWidget()
-        form_layout = QVBoxLayout(form_area)
-        form_layout.setContentsMargins(45, 39, 45, 0)
-        form_layout.setSpacing(0)
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.setSpacing(12)
+        main_layout.addWidget(
+            AppHeader("Make-It-All", subtitle="Welcome back")
+        )
+        main_layout.addWidget(self.build_form_area(), 1)
 
-        # instruction heading
+        self.username_input.setFocus()
+
+    def build_form_area(self) -> QWidget:
+        area = QWidget()
+        area_layout = QHBoxLayout(area)
+        area_layout.setContentsMargins(0, 0, 0, 0)
+        area_layout.addStretch(1)
+
+        column = QWidget()
+        column.setFixedWidth(420)
+        form_layout = QVBoxLayout(column)
+        form_layout.setContentsMargins(0, 24, 0, 24)
+        form_layout.setSpacing(0)
+        form_layout.addStretch(1)
+
         instruction_row = QHBoxLayout()
-        
-        instruction = QLabel("Enter Username/password")
+        instruction = QLabel("Sign in to your account")
         instruction.setObjectName("instruction")
         instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
         instruction.setFixedSize(174, 22)
-        
         instruction_row.addStretch()
         instruction_row.addWidget(instruction)
         instruction_row.addStretch()
-        
         form_layout.addLayout(instruction_row)
         form_layout.addSpacing(19)
-        
-        # username
+
         self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Email (user/manager)")
         self.username_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.username_input.setFixedHeight(42)
         self.username_input.setAccessibleName("Username or email")
         self.username_input.returnPressed.connect(self._focus_password)
-        
         form_layout.addWidget(self.username_input)
         form_layout.addSpacing(18)
 
-        # password
         self.password_input = QLineEdit()
         self.password_input.setPlaceholderText("Password")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
@@ -149,39 +112,45 @@ class LoginWindow(QWidget):
         self.password_input.setFixedHeight(42)
         self.password_input.setAccessibleName("Password")
         self.password_input.returnPressed.connect(self.submit)
-        
         form_layout.addWidget(self.password_input)
         form_layout.addSpacing(8)
 
-        # enter button
         button_row = QHBoxLayout()
-
-        self.enter_button = QPushButton("Enter")
+        self.enter_button = QPushButton("Sign in")
         self.enter_button.setObjectName("enterButton")
         self.enter_button.setFixedSize(121, 32)
         self.enter_button.clicked.connect(self.submit)
-        
         button_row.addStretch()
         button_row.addWidget(self.enter_button)
-        
         form_layout.addLayout(button_row)
-        form_layout.addStretch()
+        form_layout.addStretch(1)
 
-        main_layout.addWidget(form_area, 1)
-        
-        self.username_input.setFocus()
+        area_layout.addWidget(column)
+        area_layout.addStretch(1)
+        return area
 
-    def _focus_password(self):
+    def _focus_password(self) -> None:
         self.password_input.setFocus()
-        
-    def submit(self):
-        
+
+    def submit(self) -> None:
         username = self.username_input.text().strip()
         password = self.password_input.text()
 
         if not username or not password:
-            QMessageBox.warning(self, "Missing information", "Please enter username/email and password.")
+            QMessageBox.warning(
+                self,
+                "Missing information",
+                "Please enter username/email and password.",
+            )
             return
 
         # here, connect to authenticator
         self.login_requested.emit(username, password)
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
+    app = QApplication(sys.argv)
+    window = LoginWindow()
+    window.show()
+    sys.exit(app.exec())

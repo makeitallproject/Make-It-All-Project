@@ -174,18 +174,6 @@ STYLESHEET = """
 QWidget {
     font-size: 13px;
 }
-QLabel#screenTitle {
-    font-size: 20px;
-    font-weight: 600;
-}
-QLabel#headerUser {
-    font-size: 14px;
-    font-weight: 600;
-}
-QLabel#muted {
-    font-size: 12px;
-    color: palette(placeholder-text);
-}
 QLabel#columnTitle {
     font-size: 16px;
     font-weight: 600;
