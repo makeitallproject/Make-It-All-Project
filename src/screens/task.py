@@ -1,36 +1,31 @@
+import signal
 import sys
 from PyQt6.QtCore import Qt, QDate, QTime
-from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, 
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
-                             QPushButton, QLabel, QLineEdit, QCheckBox,
+                             QPushButton, QLineEdit, QCheckBox,
                              QComboBox, QTextEdit, QDateEdit, QTimeEdit, 
                              QFileDialog)
 
+from widgets.app_header import AppHeader
+
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, user: str = "Mish"):
         super().__init__()
         
-        #top section of the page e.g. company logo
-        logo_label = QLabel()
-        pixmap = QPixmap("assets/company_logo.png")
-        logo_label.setPixmap(pixmap.scaled(180, 90, Qt.AspectRatioMode.KeepAspectRatio))
-        
+        self.current_user = user
         self.setWindowTitle("Create New Task")
         self.resize(600, 700)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(40, 40, 40, 40)
-        main_layout.setSpacing(30)
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.setSpacing(16)
 
-        #top section layout
-        top_layout = QHBoxLayout()
-        top_layout.addWidget(logo_label)
-        top_layout.addStretch() 
-        main_layout.addLayout(top_layout)
-        main_layout.addSpacing(20) 
+        # top section of the screen, including company logo
+        self.header = AppHeader("New Task", user=user)
+        main_layout.addWidget(self.header)
 
         #middle section of the page e.g. the form
         form_layout = QFormLayout()
@@ -129,6 +124,10 @@ class MainWindow(QMainWindow):
 
         self.title_input.textChanged.connect(self.validate_form)
 
+    def set_user(self, user: str) -> None:
+        self.current_user = user
+        self.header.set_user(user)
+
     def toggle_reminders(self, checked):
         self.reminders_container.setVisible(checked)
 
@@ -149,7 +148,8 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    app.exec()
+    sys.exit(app.exec())

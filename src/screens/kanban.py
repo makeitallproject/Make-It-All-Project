@@ -174,18 +174,6 @@ STYLESHEET = """
 QWidget {
     font-size: 13px;
 }
-QLabel#screenTitle {
-    font-size: 20px;
-    font-weight: 600;
-}
-QLabel#headerUser {
-    font-size: 14px;
-    font-weight: 600;
-}
-QLabel#muted {
-    font-size: 12px;
-    color: palette(placeholder-text);
-}
 QLabel#columnTitle {
     font-size: 16px;
     font-weight: 600;
@@ -513,7 +501,7 @@ class ColumnWidget(QFrame):
 
 
 class KanbanScreen(QWidget):
-    def __init__(self):
+    def __init__(self, user: str = CURRENT_USER):
         super().__init__()
 
         self.setWindowTitle("Make-It-All Tasks Board")
@@ -523,13 +511,8 @@ class KanbanScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        root.addWidget(
-            AppHeader(
-                "Make-It-All Board",
-                subtitle=f"{task_count} tasks across {len(TASKS)} {stage_word}",
-                user=CURRENT_USER,
-            )
-        )
+        self.header = AppHeader("Make-It-All Tasks Board", user=user)
+        root.addWidget(self.header)
 
         board_max_width = (
             len(TASKS) * COLUMN_MAX_WIDTH + (len(TASKS) - 1) * BOARD_GAP
@@ -544,12 +527,30 @@ class KanbanScreen(QWidget):
         board_layout.setContentsMargins(0, 0, 0, 0)
         board_layout.setSpacing(BOARD_GAP)
 
-        for index, column in enumerate(TASKS):
-            board.addWidget(ColumnWidget(column))
-            board.setStretchFactor(index, 1)
+        for column in TASKS:
+            board_layout.addWidget(ColumnWidget(column), 1)
 
-        board.setSizes([300] * len(TASKS))
-        root.addWidget(board, 1)
+        board_scroll = QScrollArea()
+        board_scroll.setObjectName("boardScroll")
+        board_scroll.setAccessibleName("Task board")
+        board_scroll.setWidgetResizable(True)
+        board_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        board_scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        board_scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        board_scroll.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+        )
+        board_scroll.setWidget(board)
+        root.addWidget(board_scroll, 1)
+
+    def set_user(self, user: str) -> None:
+        """Update the signed-in user shown in the header."""
+        self.current_user = user
+        self.header.set_user(user)
 
 
 if __name__ == "__main__":

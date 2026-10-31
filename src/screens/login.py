@@ -1,52 +1,13 @@
 # src > screens > login.py
 # @toblobs // last updated 27.10.26
 
-from pathlib import Path
+import signal
+import sys
 
-from PyQt6.QtCore import Qt, pyqtSignal, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QPalette, QPen
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QWidget
 
-# logo panel
-class LogoPanel(QWidget):
-    
-    def __init__(self, parent = None):
-        
-        super().__init__(parent)
-        self.setFixedHeight(250)
-        
-        logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "company_logo.png"
-        self.logo = QPixmap(str(logo_path)) if logo_path else QPixmap()
-        
-    def paintEvent(self, event): # type: ignore
-        
-        # make a painter
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-        bounds = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
-        outline = QPainterPath()
-        outline.addRoundedRect(bounds, 35, 35)
-
-        painter.save()
-        painter.setClipPath(outline)
-
-        # paint logo
-        if not self.logo.isNull(): painter.drawPixmap(bounds, self.logo, QRectF(self.logo.rect()))
-        else: painter.fillPath(outline, self.palette().color(QPalette.ColorRole.Base))
-        
-        painter.setPen(self.palette().color(QPalette.ColorRole.Text))
-        # painter.drawText(bounds, Qt.AlignmentFlag.AlignCenter, "Make-It-All")
-
-        # cleanup
-        painter.restore()
-
-        painter.setPen(QPen(self.palette().color(QPalette.ColorRole.Mid), 1))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawPath(outline)
-        
-        painter.end()
+from widgets.app_header import AppHeader
 
 # login window form
 class LoginWindow(QWidget):
@@ -102,12 +63,9 @@ class LoginWindow(QWidget):
 
         # vertical layout for a rounded button
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
-        # logo label
-        self.logo_panel = LogoPanel()
-        main_layout.addWidget(self.logo_panel)        
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.setSpacing(12)
+        main_layout.addWidget(AppHeader("Make-It-All System"))
         
         # form area
         form_area = QWidget()
@@ -185,3 +143,11 @@ class LoginWindow(QWidget):
 
         # here, connect to authenticator
         self.login_requested.emit(username, password)
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
+    app = QApplication(sys.argv)
+    window = LoginWindow()
+    window.show()
+    sys.exit(app.exec())

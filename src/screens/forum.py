@@ -158,14 +158,6 @@ QFrame#composer {
     border: 1px solid palette(mid);
     border-radius: 8px;
 }
-QLabel#screenTitle {
-    font-size: 20px;
-    font-weight: 600;
-}
-QLabel#headerUser {
-    font-size: 14px;
-    font-weight: 600;
-}
 QLabel#muted {
     font-size: 12px;
     color: palette(placeholder-text);
@@ -402,8 +394,10 @@ class TopicDialog(QDialog):
 class ForumScreen(QWidget):
     """The 3-pane forum screen"""
 
-    def __init__(self):
+    def __init__(self, user: str = CURRENT_USER):
         super().__init__()
+
+        self.current_user = user
 
         self.setWindowTitle("Make-It-All Forum")
         self.setMinimumSize(1100, 700)
@@ -415,7 +409,8 @@ class ForumScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        root.addWidget(AppHeader("Make-It-All Forum", user=CURRENT_USER))
+        self.header = AppHeader("Make-It-All Forum", user=user)
+        root.addWidget(self.header)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.splitter.setChildrenCollapsible(False)
@@ -435,6 +430,11 @@ class ForumScreen(QWidget):
             button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.update_publish_state()
         self.topic_list.setFocus()
+
+    def set_user(self, user: str) -> None:
+        """Update the signed-in user shown in the header."""
+        self.current_user = user
+        self.header.set_user(user)
 
     def build_topic_panel(self) -> QWidget:
         panel = QFrame()
@@ -767,7 +767,7 @@ class ForumScreen(QWidget):
             "topic_id": self.selected_topic_id,
             "title": title,
             "body": body,
-            "author": CURRENT_USER,
+            "author": self.current_user,
             "created": datetime.now(),
         }
         POSTS.append(post)

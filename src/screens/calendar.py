@@ -1,6 +1,6 @@
 import sys
 import signal
-from screens import login, task, kanban
+from screens import forum, login, task, kanban
 from pathlib import Path
 from datetime import date
 
@@ -32,7 +32,10 @@ from PyQt6.QtWidgets import (
     QSpacerItem
 )
 
+from widgets.app_header import AppHeader
+
 is_manager = True
+CURRENT_USER = "Mish"
 
 task_list = [{"date" : QDate(2026, 10, 30), "tasks": [{"name" : "Finish Team Project", "completed": False},{"name" : "Team networking event", "completed": True}]},
              {"date" : QDate(2026, 10, 18), "tasks": [{"name" : "Finish Team Project", "completed": False}]},]
@@ -42,11 +45,14 @@ class CalendarApp(QWidget):
     def __init__(self, login_window):
         super().__init__()
 
-        self.setWindowTitle("Calendar")
+        self.setWindowTitle("Make-It-All System")
         self.setMinimumSize(700, 560)
 
-
         self.login_window = login_window
+        self.current_user = CURRENT_USER
+        self.all_tasks_window = None
+        self.knowledge_window = None
+        self.add_task_window = None
 
         #create calendar
         self.calendar = SpecialCalendar()
@@ -55,16 +61,13 @@ class CalendarApp(QWidget):
 
         #create view tasks button
         self.all_tasks_btn = QPushButton("View Tasks")
-        self.all_tasks_window = kanban.KanbanScreen()
         self.all_tasks_btn_pressed = False
         self.all_tasks_btn.clicked.connect(self.clicked_all_tasks_btn)
-        self.all_tasks_btn.setMinimumSize(70, 60)
 
         #create knowledge sharing button
-        self.knowledge_btn = QPushButton("View Knowledge")
+        self.knowledge_btn = QPushButton("Open the Forum")
         #self.logout_window = kanban.KanbanScreen()
         self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
-        self.knowledge_btn.setMinimumSize(70, 60)
 
         #create log out button
         self.logout_btn = QPushButton("Log Out")
@@ -73,25 +76,8 @@ class CalendarApp(QWidget):
 
         #create add task button
         if is_manager:
-            self.add_task_btn = QPushButton("Add a task")
+            self.add_task_btn = QPushButton("Create a Task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
-            self.add_task_window = task.MainWindow()
-            self.add_task_btn.setMinimumSize(70, 60)
-
-
-        #create logo
-        self.logo = QLabel()
-        self.logo.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-        self.logo.setMaximumSize(280, 78)
-        logo_path = Path("assets") / "company_logo.png"
-        self.logo.setPixmap(
-            QPixmap(str(logo_path)).scaled(
-                270,
-                70,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-        )
 
         #create show task button
         self.show_tasks = QLabel("Select a day to view its tasks")
@@ -102,23 +88,7 @@ class CalendarApp(QWidget):
         )
 
         #create header
-        header = QWidget()
-        header.setMinimumHeight(185)
-        header_layout = QVBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 12)
-        header_layout.setSpacing(0)
-
-        #create row for logo
-        logo_row = QHBoxLayout()
-        logo_row.setContentsMargins(0, 0, 0, 0)
-        logo_row.addStretch()
-        logo_row.addWidget(self.logout_btn)
-        logo_row.addSpacerItem(QSpacerItem(1185, 20, QSizePolicy.Policy.Expanding))
-        logo_row.addWidget(self.logo)
-
-        #add logo row to header
-        header_layout.addLayout(logo_row)
-        header_layout.addStretch()
+        self.header = AppHeader("Make-It-All Calendar", user=self.current_user)
 
         #create row for buttons
         button_row = QHBoxLayout()
@@ -129,15 +99,14 @@ class CalendarApp(QWidget):
         if is_manager:
             button_row.addWidget(self.add_task_btn)
         button_row.addStretch()
-
-        #add button row to header
-        header_layout.addLayout(button_row)
+        button_row.addWidget(self.logout_btn)
 
         #create layout for calendar and tasks
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(header)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
+        layout.addWidget(self.header)
+        layout.addLayout(button_row)
 
         #create frame and box for calendar
         calendar_frame = QFrame()
@@ -175,18 +144,24 @@ class CalendarApp(QWidget):
         """
         show Mish's Kanban board window
         """
-        self.all_tasks_window.show()
+        if self.all_tasks_window is None:
+            self.all_tasks_window = kanban.KanbanScreen(user=self.current_user)
+        self.show_window(self.all_tasks_window)
 
     def clicked_knowledge_btn(self):
         """
         show Mish's knowledge sharing window
         """
-        #self.knowledge_window.show()
+        if self.knowledge_window is None:
+            self.knowledge_window = forum.ForumScreen(user=self.current_user)
+        self.show_window(self.knowledge_window)
 
     def clicked_logout_btn(self):
         """
         show Tobi's log in window
         """
+        for window in self.child_windows():
+            window.hide()
         self.logout_window.password_input.setText("")
         self.logout_window.username_input.setText("")
         self.logout_window.showMaximized()
@@ -196,7 +171,28 @@ class CalendarApp(QWidget):
         """
         show Evan's "add tasks" window
         """
-        self.add_task_window.show()
+        if self.add_task_window is None:
+            self.add_task_window = task.MainWindow(user=self.current_user)
+        self.show_window(self.add_task_window)
+
+    def set_user(self, user):
+        self.current_user = user or CURRENT_USER
+        self.header.set_user(self.current_user)
+        for window in self.child_windows():
+            window.set_user(self.current_user)
+
+    def child_windows(self):
+        windows = (
+            self.all_tasks_window,
+            self.knowledge_window,
+            self.add_task_window,
+        )
+        return [window for window in windows if window is not None]
+
+    def show_window(self, window):
+        window.show()
+        window.raise_()
+        window.activateWindow()
 
 
 
