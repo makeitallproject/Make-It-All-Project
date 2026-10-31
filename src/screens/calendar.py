@@ -40,12 +40,14 @@ task_list = [{"date" : QDate(2026, 10, 30), "tasks": [{"name" : "Finish Team Pro
 
 class CalendarApp(QWidget):
 
-    def __init__(self):
+    def __init__(self, login_window):
         super().__init__()
 
         self.setWindowTitle("Calendar")
         self.setMinimumSize(700, 560)
-        self.showMaximized()
+
+
+        self.login_window = login_window
 
         #create calendar
         self.calendar = SpecialCalendar()
@@ -67,7 +69,7 @@ class CalendarApp(QWidget):
 
         #create log out button
         self.logout_btn = QPushButton("Log Out")
-        #self.logout_window = kanban.KanbanScreen()
+        self.logout_window = self.login_window
         self.logout_btn.clicked.connect(self.clicked_logout_btn)
 
         #create add task button
@@ -186,7 +188,10 @@ class CalendarApp(QWidget):
         """
         show Tobi's log in window
         """
-        #self.logout_window.show()
+        self.logout_window.password_input.setText("")
+        self.logout_window.username_input.setText("")
+        self.logout_window.show()
+        self.hide()
 
     def clicked_add_task_btn(self):
         """
@@ -201,12 +206,7 @@ class SpecialCalendar(QCalendarWidget):
     def __init__(self):
         super().__init__()
 
-        self.setStyleSheet("""
-            /* top navigation bar (month/year buttons) */
-            QCalendarWidget QToolButton {
-                font-size: 14px;
-            }
-        """)
+        
 
     def paintCell(self, painter: QPainter, rect, date: QDate):
             """
