@@ -2,6 +2,8 @@ import sys
 import signal
 import task
 import kanban
+import forum
+
 from pathlib import Path
 from datetime import date
 
@@ -62,8 +64,8 @@ class CalendarApp(QWidget):
         self.all_tasks_btn.setMinimumSize(70, 60)
 
         #create knowledge sharing button
-        self.knowledge_btn = QPushButton("View Knowledge")
-        #self.logout_window = kanban.KanbanScreen()
+        self.knowledge_btn = QPushButton("View Forum")
+        self.knowledge_window = forum.ForumScreen()
         self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
         self.knowledge_btn.setMinimumSize(70, 60)
 
@@ -182,7 +184,7 @@ class CalendarApp(QWidget):
         """
         show Mish's knowledge sharing window
         """
-        #self.knowledge_window.show()
+        self.knowledge_window.show()
 
     def clicked_logout_btn(self):
         """
@@ -240,12 +242,15 @@ class SpecialCalendar(QCalendarWidget):
             painter.restore()
 
 
-if __name__ == "__main__":
+#temporarily diabled this section as the calendar screen cannot be opened on its own due to circular imports
+
+#if __name__ == "__main__":
     # This guard allows Calendar.py to be imported for testing without opening
     # a window, while still supporting direct execution from the command line.
 
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
-    app = QApplication(sys.argv)
-    window = CalendarApp()
-    window.show()
-    sys.exit(app.exec())
+    #signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
+    #app = QApplication(sys.argv)
+    #login_window = login.LoginWindow()
+    #window = CalendarApp(login_window)
+    #window.show()
+    #sys.exit(app.exec())

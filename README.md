@@ -12,12 +12,16 @@
 ### Test the screens
 
 ```bash
-# View the calendar screen
+# View the login screen, this is the entry point of the program
+uv run src/screens/login_screen.py
+# View the calendar screen (cannot be directly viewed currently, go through the login page instead)
 uv run src/screens/calendar.py
 # View the kanban (board) screen
 uv run src/screens/kanban.py
 # View the forum (knowledge sharing) screen
 uv run src/screens/forum.py
+# View the task creation screen
+uv run src/screens/task.py
 ```
 
 ## Development and contributing
