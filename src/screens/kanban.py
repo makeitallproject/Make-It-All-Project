@@ -501,7 +501,7 @@ class ColumnWidget(QFrame):
 
 
 class KanbanScreen(QWidget):
-    def __init__(self):
+    def __init__(self, user: str = CURRENT_USER):
         super().__init__()
 
         self.setWindowTitle("Make-It-All Tasks Board")
@@ -511,13 +511,12 @@ class KanbanScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        root.addWidget(
-            AppHeader(
-                "Make-It-All Board",
-                subtitle=f"{task_count} tasks across {len(TASKS)} {stage_word}",
-                user=CURRENT_USER,
-            )
+        self.header = AppHeader(
+            "Make-It-All Board",
+            subtitle=f"{task_count} tasks across {len(TASKS)} {stage_word}",
+            user=user,
         )
+        root.addWidget(self.header)
 
         board_max_width = (
             len(TASKS) * COLUMN_MAX_WIDTH + (len(TASKS) - 1) * BOARD_GAP
@@ -538,6 +537,11 @@ class KanbanScreen(QWidget):
 
         board.setSizes([300] * len(TASKS))
         root.addWidget(board, 1)
+
+    def set_user(self, user: str) -> None:
+        """Update the signed-in user shown in the header."""
+        self.current_user = user
+        self.header.set_user(user)
 
 
 if __name__ == "__main__":

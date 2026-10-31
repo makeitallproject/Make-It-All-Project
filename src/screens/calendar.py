@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from screens import kanban, login, task
+from screens import forum, kanban, login, task
 from widgets.app_header import AppHeader
 
 IS_MANAGER = True
@@ -46,6 +46,9 @@ class CalendarApp(QWidget):
 
         self.login_window = login_window
         self.current_user = CURRENT_USER
+        self.all_tasks_window = None
+        self.knowledge_window = None
+        self.add_task_window = None
 
         self.calendar = SpecialCalendar()
         self.calendar.selectionChanged.connect(self.on_date_selected)
@@ -53,7 +56,6 @@ class CalendarApp(QWidget):
 
         self.all_tasks_btn = QPushButton("View tasks")
         self.all_tasks_btn.clicked.connect(self.clicked_all_tasks_btn)
-        self.all_tasks_window = kanban.KanbanScreen()
 
         self.knowledge_btn = QPushButton("View knowledge")
         self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
@@ -64,7 +66,6 @@ class CalendarApp(QWidget):
         if IS_MANAGER:
             self.add_task_btn = QPushButton("Add task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
-            self.add_task_window = task.MainWindow()
 
         for button in self.action_buttons():
             button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -135,14 +136,20 @@ class CalendarApp(QWidget):
 
     def clicked_all_tasks_btn(self) -> None:
         """Show the Kanban board."""
-        self.all_tasks_window.show()
+        if self.all_tasks_window is None:
+            self.all_tasks_window = kanban.KanbanScreen(user=self.current_user)
+        self.show_window(self.all_tasks_window)
 
     def clicked_knowledge_btn(self) -> None:
         """Show the knowledge-sharing screen."""
-        # self.knowledge_window.show()
+        if self.knowledge_window is None:
+            self.knowledge_window = forum.ForumScreen(user=self.current_user)
+        self.show_window(self.knowledge_window)
 
     def clicked_logout_btn(self) -> None:
         """Return to the login screen."""
+        for window in self.child_windows():
+            window.hide()
         self.login_window.password_input.setText("")
         self.login_window.username_input.setText("")
         self.login_window.showMaximized()
@@ -150,7 +157,29 @@ class CalendarApp(QWidget):
 
     def clicked_add_task_btn(self) -> None:
         """Show the create-task form."""
-        self.add_task_window.show()
+        if self.add_task_window is None:
+            self.add_task_window = task.MainWindow(user=self.current_user)
+        self.show_window(self.add_task_window)
+
+    def set_user(self, user: str) -> None:
+        """Update the signed-in user everywhere it is shown."""
+        self.current_user = user or CURRENT_USER
+        self.header.set_user(self.current_user)
+        for window in self.child_windows():
+            window.set_user(self.current_user)
+
+    def child_windows(self) -> list[QWidget]:
+        windows = (
+            self.all_tasks_window,
+            self.knowledge_window,
+            self.add_task_window,
+        )
+        return [window for window in windows if window is not None]
+
+    def show_window(self, window: QWidget) -> None:
+        window.show()
+        window.raise_()
+        window.activateWindow()
 
 
 class SpecialCalendar(QCalendarWidget):
