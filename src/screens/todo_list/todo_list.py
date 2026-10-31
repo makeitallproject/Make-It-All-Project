@@ -7,6 +7,11 @@ from pathlib import Path
 
 import sys
 
+from widgets.app_header import AppHeader
+
+# TODO un-hardcode this
+CURRENT_USER = "Mish"
+
 ASSETS_DIR = Path("assets") / "todo_list"
 DB_DIR = Path("src") / "screens" / "todo_list"
 
@@ -39,7 +44,7 @@ def restartWindow(self):
     self.close()
     self.deleteLater()
 
-    self.window = MainWindow()
+    self.window = MainWindow(self.current_user)
     self.window.show()
 
 
@@ -55,9 +60,10 @@ def startup():
         app.exec()
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, user: str = CURRENT_USER):
         super().__init__()
 
+        self.current_user = user
         self.setWindowTitle("To-Do List")
         self.setFixedSize(QSize(1450, 800))
         self.pageNumber = 1
@@ -110,32 +116,14 @@ class MainWindow(QMainWindow):
         unrestricted.setHorizontalPolicy(QSizePolicy.Policy.Ignored)
         unrestricted.setVerticalPolicy(QSizePolicy.Policy.Ignored)
 
-        #button which exits back to the menu
-        exitButton = QPushButton(
-            icon = QIcon(str(ASSETS_DIR / "back_arrow.png")),
-            text = "",
-            parent = self
-        )
-        exitButton.setSizePolicy(unrestricted)
-        exitButton.setFixedSize(101,85)
-        exitButton.setIconSize(QSize(101,101))
-        exitButton.clicked.connect(self.exitWindow)
-
-        #logo
-        logoHolder = QLabel()
-        logo = QPixmap(str(ASSETS_DIR / "company_logo.png"))
-        logoHolder.setPixmap(logo.scaled(330, 165, Qt.AspectRatioMode.KeepAspectRatio))
-        
         #page layout
         ladder = QVBoxLayout()
         ladder.setSpacing(0)
         
-        #top
-        topRow = QHBoxLayout()
-        topRow.addWidget(exitButton)
-        topRow.addWidget(logoHolder)
-        topRow.setSpacing(1000)
-        ladder.addLayout(topRow)
+        #header
+        self.header = AppHeader("To-Do List", user=user, back_to_calendar=True)
+        self.header.back_requested.connect(self.exitWindow)
+        ladder.addWidget(self.header)
         
         #to-do list
         middleContainer = QWidget()
@@ -370,6 +358,10 @@ class MainWindow(QMainWindow):
         main.setLayout(ladder)
         self.setCentralWidget(main)
         
+    def set_user(self, user):
+        self.current_user = user
+        self.header.set_user(user)
+
     def exitWindow(self):
         if(self.listTabs.currentIndex() != 0):
             self.listTabs.setCurrentIndex(0)
