@@ -5,7 +5,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from screens import calendar
-from screens.login_screen import LoginWindow
+from screens.login import LoginWindow
 
 
 def main() -> int:
