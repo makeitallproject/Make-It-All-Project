@@ -7,6 +7,9 @@ from pathlib import Path
 
 import sys
 
+ASSETS_DIR = Path("assets") / "todo_list"
+DB_DIR = Path("src") / "screens" / "todo_list"
+
 # takes the array of parts as input
 # outputs percentage of subtasks completed (2dp) multiplied by 100 (always integer)
 def completion(task):
@@ -21,17 +24,15 @@ def completion(task):
 def findProgressBar(percentage):
     match percentage:
         case 100:
-            return QPixmap("Full Progress Bar.png")
+            return QPixmap(str(ASSETS_DIR / "full_progress_bar.png"))
         case 66:
-            return QPixmap("Two Third Progress Bar.png")
+            return QPixmap(str(ASSETS_DIR / "two_third_progress_bar.png"))
         case 50:
-            return QPixmap("Half Progress Bar.png")
+            return QPixmap(str(ASSETS_DIR / "half_progress_bar.png"))
         case 33:
-            return QPixmap("One Third Progress Bar.png")
-        case 0:
-            return QPixmap("Empty Progress Bar.png")
+            return QPixmap(str(ASSETS_DIR / "one_third_progress_bar.png"))
         case _:
-            return QPixmap("Empty Progress Bar.png")
+            return QPixmap(str(ASSETS_DIR / "empty_progress_bar.png"))
 
 #destroys the window and restarts it
 def restartWindow(self):
@@ -45,7 +46,8 @@ def restartWindow(self):
 def startup():
     if __name__ == "__main__":
         app = QApplication(sys.argv)
-        app.setStyleSheet(Path('stylesheet.qss').read_text())
+        STYLE_SHEET_PATH = Path(__file__).parent / "stylesheet.qss"
+        app.setStyleSheet(STYLE_SHEET_PATH.read_text())
 
         window = MainWindow()
         window.show()
@@ -59,11 +61,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("To-Do List")
         self.setFixedSize(QSize(1450, 800))
         self.pageNumber = 1
-        with open("db_Current Page.txt", "r") as database:
+        with open(DB_DIR / "db_Current Page.txt", "r") as database:
             self.pageNumber = int(database.readline())
         # keeps track of the subtasks completed per task
         self.subtasks = []
-        with open("db_Subtasks.txt", "r") as database:
+        with open(DB_DIR / "db_Subtasks.txt", "r") as database:
             for line in database:
                 self.subtasks.append(line.strip("\n").split(","))
         for task in range(len(self.subtasks)):
@@ -71,11 +73,11 @@ class MainWindow(QMainWindow):
                 self.subtasks[task][subtask] = int(self.subtasks[task][subtask])
         # keeps track of task names
         self.taskText = []
-        with open("db_Task Names.txt", "r") as database:
+        with open(DB_DIR / "db_Task Names.txt", "r") as database:
             self.taskText = database.readline().split(",")
         # keeps track of subtask names
         self.subtaskText = []
-        with open("db_Subtask Names.txt", "r") as database:
+        with open(DB_DIR / "db_Subtask Names.txt", "r") as database:
             for line in database:
                 self.subtaskText.append(line.strip("\n").split(","))
         # keeps track of the checkboxes
@@ -110,7 +112,7 @@ class MainWindow(QMainWindow):
 
         #button which exits back to the menu
         exitButton = QPushButton(
-            icon = QIcon("Back Arrow"),
+            icon = QIcon(str(ASSETS_DIR / "back_arrow.png")),
             text = "",
             parent = self
         )
@@ -121,7 +123,7 @@ class MainWindow(QMainWindow):
 
         #logo
         logoHolder = QLabel()
-        logo = QPixmap("company_logo.png")
+        logo = QPixmap(str(ASSETS_DIR / "company_logo.png"))
         logoHolder.setPixmap(logo.scaled(330, 165, Qt.AspectRatioMode.KeepAspectRatio))
         
         #page layout
@@ -145,7 +147,7 @@ class MainWindow(QMainWindow):
         if self.pageNumber > 1:
             #previous page button
             backwardButton = QPushButton(
-                icon = QIcon("Page Arrow Backward"),
+                icon = QIcon(str(ASSETS_DIR / "page_arrow_backward.png")),
                 text = "",
                 parent = self
             )
@@ -161,7 +163,7 @@ class MainWindow(QMainWindow):
         if self.maxPageAmount > self.pageNumber:
             #next page button
             forwardButton = QPushButton(
-                icon = QIcon("Page Arrow Forward"),
+                icon = QIcon(str(ASSETS_DIR / "page_arrow_forward.png")),
                 text = "",
                 parent = self
             )
@@ -241,7 +243,7 @@ class MainWindow(QMainWindow):
                 progressBarHolder.addWidget(progressBar)
                 subtaskHolder.addLayout(progressBarHolder)
                 deletionButton = QPushButton(
-                    icon = QIcon("Delete Icon"),
+                    icon = QIcon(str(ASSETS_DIR / "delete_icon.png")),
                     text = "",
                     parent = self
                 )
@@ -270,7 +272,7 @@ class MainWindow(QMainWindow):
         bottomRow.setContentsMargins(250,0,0,0)
         #add page button
         addListButton = QPushButton(
-            icon = QIcon("Add Item"),
+            icon = QIcon(str(ASSETS_DIR / "add_item.png")),
             text = "",
             parent = self
         )
@@ -317,7 +319,7 @@ class MainWindow(QMainWindow):
             self.formInputs.append(newestInputBox)
             formLayout.addWidget(newestInputBox)
         finishCreation = QPushButton(
-            icon = QIcon("Page Arrow Forward"),
+            icon = QIcon(str(ASSETS_DIR / "page_arrow_forward.png")),
             text = "",
             parent = self
         )
@@ -347,7 +349,7 @@ class MainWindow(QMainWindow):
         deleteConfirmText = self.deleteConfirmText
         deleteConfirmHolder.addWidget(deleteConfirmText)
         confirmDelete = QPushButton(
-            icon = QIcon("Delete Icon"),
+            icon = QIcon(str(ASSETS_DIR / "delete_icon.png")),
             text = "",
             parent = self
         )
@@ -378,14 +380,14 @@ class MainWindow(QMainWindow):
     def previousPage(self):
         if(self.pageNumber > 1):
             self.pageNumber -= 1
-            with open("db_Current Page.txt", "w") as database:
+            with open(DB_DIR / "db_Current Page.txt", "w") as database:
                 database.write(str(self.pageNumber))
         restartWindow(self)
         
     def nextPage(self):
         if(self.pageNumber < self.maxPageAmount):
             self.pageNumber += 1
-            with open("db_Current Page.txt", "w") as database:
+            with open(DB_DIR / "db_Current Page.txt", "w") as database:
                 database.write(str(self.pageNumber))
         restartWindow(self)
 
@@ -407,10 +409,10 @@ class MainWindow(QMainWindow):
 
     def deleteTask(self):
         if(self.pageNumber == self.maxPageAmount and len(self.subtasks) % 2 == 1):
-            with open("db_Current Page.txt", "w") as database:
+            with open(DB_DIR / "db_Current Page.txt", "w") as database:
                 self.pageNumber -= 1
                 database.write(str(self.pageNumber))
-        with open("db_Task Names.txt", "w") as database:
+        with open(DB_DIR / "db_Task Names.txt", "w") as database:
             finalTasks = ""
             foundTask = False
             for task in range(len(self.taskText)):
@@ -421,7 +423,7 @@ class MainWindow(QMainWindow):
                 else:
                     foundTask = True
             database.write(finalTasks)
-        with open("db_Subtasks.txt", "w") as database:
+        with open(DB_DIR / "db_Subtasks.txt", "w") as database:
             finalTasks = ""
             for task in range(len(self.subtasks)):
                 if(task != self.taskToDelete):
@@ -432,7 +434,7 @@ class MainWindow(QMainWindow):
                         
                     finalTasks += "\n"
             database.write(finalTasks)
-        with open("db_Subtask Names.txt", "w") as database:
+        with open(DB_DIR / "db_Subtask Names.txt", "w") as database:
             finalTasks = ""
             for task in range(len(self.subtaskText)):
                 if(task != self.taskToDelete):
@@ -458,7 +460,7 @@ class MainWindow(QMainWindow):
                     success = True
                     newSubtaskNames.append(subtaskInput.text())
             if success == True:
-                with open("db_Subtask Names.txt", "a") as database:
+                with open(DB_DIR / "db_Subtask Names.txt", "a") as database:
                     subtaskEdit = ""
                     for newSubtasks in range(len(newSubtaskNames)):
                         subtaskEdit += newSubtaskNames[newSubtasks]
@@ -466,7 +468,7 @@ class MainWindow(QMainWindow):
                             subtaskEdit += ","
                     subtaskEdit += "\n"
                     database.write(subtaskEdit)
-                with open("db_Subtasks.txt", "a") as database:
+                with open(DB_DIR / "db_Subtasks.txt", "a") as database:
                     subtaskEdit = ""
                     for newSubtasks in range(len(newSubtaskNames)):
                         subtaskEdit += "0"
@@ -474,7 +476,7 @@ class MainWindow(QMainWindow):
                             subtaskEdit += ","
                     subtaskEdit += "\n"
                     database.write(subtaskEdit)
-                with open("db_Task Names.txt", "a") as database:
+                with open(DB_DIR / "db_Task Names.txt", "a") as database:
                     database.write("," + self.formInputs[0].text())
                 restartWindow(self)
            
@@ -494,8 +496,8 @@ class MainWindow(QMainWindow):
             else:
                 secondTask[count - len(firstTask) - 1] = checkboxValue
             count += 1
-        open("db_Subtasks.txt", "w").close()
-        with open("db_Subtasks.txt", "a") as database:
+        open(DB_DIR / "db_Subtasks.txt", "w").close()
+        with open(DB_DIR / "db_Subtasks.txt", "a") as database:
             for subtaskValues in self.subtasks:
                 databaseAppend = ""
                 first = True
