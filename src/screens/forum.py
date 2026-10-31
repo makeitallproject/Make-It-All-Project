@@ -4,10 +4,9 @@ import re
 import signal
 import sys
 from datetime import datetime
-from pathlib import Path
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QKeySequence, QPalette, QPixmap, QShortcut
+from PyQt6.QtGui import QKeySequence, QPalette, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -28,6 +27,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from widgets.app_header import AppHeader
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
 from widgets.forum.growing_text_edit import GrowingTextEdit
@@ -35,7 +35,6 @@ from widgets.forum.post_card import PostCard
 from widgets.forum.topic_row import TopicRow
 
 # TODO un-hardcode these
-ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 CURRENT_USER = "Mish"
 
 # Keep the line width comfortable on wide screens
@@ -416,7 +415,7 @@ class ForumScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        root.addLayout(self.build_header())
+        root.addWidget(AppHeader("Make-It-All Forum", user=CURRENT_USER))
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.splitter.setChildrenCollapsible(False)
@@ -436,47 +435,6 @@ class ForumScreen(QWidget):
             button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.update_publish_state()
         self.topic_list.setFocus()
-
-
-    def build_header(self) -> QHBoxLayout:
-        header = QHBoxLayout()
-        header.setSpacing(12)
-
-        titles = QVBoxLayout()
-        titles.setSpacing(0)
-
-        title = QLabel("Make-It-All Forum")
-        title.setObjectName("screenTitle")
-        titles.addWidget(title)
-
-        header.addLayout(titles)
-        header.addStretch()
-
-        user_row = QHBoxLayout()
-        user_row.setSpacing(6)
-        user_row.addWidget(Avatar(CURRENT_USER, 28))
-        user_name = QLabel(CURRENT_USER)
-        user_name.setObjectName("headerUser")
-        user_row.addWidget(user_name)
-        header.addLayout(user_row)
-
-        logo = QLabel()
-        logo_path = ASSETS_DIR / "company_logo.png"
-        if logo_path.exists():
-            logo.setPixmap(
-                QPixmap(str(logo_path)).scaled(
-                    140,
-                    44,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-            )
-        logo.setAlignment(
-            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-        )
-        header.addWidget(logo)
-
-        return header
 
     def build_topic_panel(self) -> QWidget:
         panel = QFrame()
