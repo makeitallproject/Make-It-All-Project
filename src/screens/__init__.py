@@ -1,1 +1,1 @@
-"""Screens for the Make-It-All app."""
+"""Screens for the Make-It-All program."""
