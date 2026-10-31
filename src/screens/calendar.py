@@ -45,9 +45,8 @@ class CalendarApp(QWidget):
     def __init__(self, login_window):
         super().__init__()
 
-        self.setWindowTitle("Calendar")
+        self.setWindowTitle("Make-It-All System")
         self.setMinimumSize(700, 560)
-
 
         self.login_window = login_window
         self.current_user = CURRENT_USER
@@ -66,7 +65,7 @@ class CalendarApp(QWidget):
         self.all_tasks_btn.clicked.connect(self.clicked_all_tasks_btn)
 
         #create knowledge sharing button
-        self.knowledge_btn = QPushButton("View Knowledge")
+        self.knowledge_btn = QPushButton("Open the Forum")
         #self.logout_window = kanban.KanbanScreen()
         self.knowledge_btn.clicked.connect(self.clicked_knowledge_btn)
 
@@ -77,7 +76,7 @@ class CalendarApp(QWidget):
 
         #create add task button
         if is_manager:
-            self.add_task_btn = QPushButton("Add a task")
+            self.add_task_btn = QPushButton("Create a Task")
             self.add_task_btn.clicked.connect(self.clicked_add_task_btn)
 
         #create show task button
