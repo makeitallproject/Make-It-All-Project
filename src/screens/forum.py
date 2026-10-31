@@ -28,11 +28,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-# TODO: Fix this nonsense vvv
-SRC_DIR = Path(__file__).resolve().parents[1]
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
 from widgets.forum.growing_text_edit import GrowingTextEdit
