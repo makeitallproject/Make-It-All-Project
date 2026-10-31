@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(16)
 
         # top section of the screen, including company logo
-        self.header = AppHeader("New task", user=user)
+        self.header = AppHeader("New Task", user=user)
         main_layout.addWidget(self.header)
 
         #middle section of the page e.g. the form
