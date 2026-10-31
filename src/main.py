@@ -25,7 +25,7 @@ def main() -> int:
 
     # When login is clicked, go to the home screen (calendar)
     window.login_requested.connect(on_login)
-    window.showMaximized()
+    window.show()
 
     return app.exec()
 

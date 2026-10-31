@@ -20,7 +20,7 @@ class LoginWindow(QWidget):
 
         self.setWindowTitle("Make-It-All Login Screen")
         self.resize(700, 560)
-        self.setMinimumSize(700, 560)
+        self.setMinimumSize(380, 300)
 
         self.setObjectName("loginWindow")
 

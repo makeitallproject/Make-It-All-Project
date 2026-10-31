@@ -1,9 +1,11 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QPlainTextEdit
 
-MIN_HEIGHT = 72
+MIN_HEIGHT = 64
 MAX_HEIGHT = 240
 MAX_WINDOW_FRACTION = 0.30
+# Window space taken by the header, feed chrome, and composer chrome.
+NON_EDITOR_WINDOW_HEIGHT = 342
 
 
 class GrowingTextEdit(QPlainTextEdit):
@@ -24,7 +26,11 @@ class GrowingTextEdit(QPlainTextEdit):
         window_height = window.height() if window is not None else 900
         return max(
             MIN_HEIGHT,
-            min(MAX_HEIGHT, int(window_height * MAX_WINDOW_FRACTION)),
+            min(
+                MAX_HEIGHT,
+                int(window_height * MAX_WINDOW_FRACTION),
+                window_height - NON_EDITOR_WINDOW_HEIGHT,
+            ),
         )
 
     def refresh_height(self) -> None:

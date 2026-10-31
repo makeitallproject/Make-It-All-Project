@@ -505,7 +505,8 @@ class KanbanScreen(QWidget):
         super().__init__()
 
         self.setWindowTitle("Make-It-All Tasks Board")
-        self.setMinimumSize(600, 560)
+        self.setMinimumSize(500, 200)
+        self.resize(1100, 780)
         self.setStyleSheet(STYLESHEET)
 
         root = QVBoxLayout(self)
@@ -557,6 +558,5 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
     window = KanbanScreen()
-    window.resize(1280, 820)
     window.show()
     sys.exit(app.exec())

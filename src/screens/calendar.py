@@ -46,7 +46,7 @@ class CalendarApp(QWidget):
         super().__init__()
 
         self.setWindowTitle("Make-It-All System")
-        self.setMinimumSize(700, 560)
+        self.setMinimumSize(480, 400)
 
         self.login_window = login_window
         self.current_user = CURRENT_USER
@@ -82,7 +82,8 @@ class CalendarApp(QWidget):
         #create show task button
         self.show_tasks = QLabel("Select a day to view its tasks")
         self.show_tasks.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.show_tasks.setMinimumHeight(58)
+        self.show_tasks.setWordWrap(True)
+        self.show_tasks.setMinimumHeight(48)
         self.show_tasks.setStyleSheet(
             "border: 4px; font-size: 20px; padding: 8px;"
         )
@@ -154,7 +155,9 @@ class CalendarApp(QWidget):
         """
         if self.knowledge_window is None:
             self.knowledge_window = forum.ForumScreen(user=self.current_user)
-        self.show_window(self.knowledge_window)
+            self.show_window(self.knowledge_window, maximized=True)
+        else:
+            self.show_window(self.knowledge_window)
 
     def clicked_logout_btn(self):
         """
@@ -164,7 +167,7 @@ class CalendarApp(QWidget):
             window.hide()
         self.logout_window.password_input.setText("")
         self.logout_window.username_input.setText("")
-        self.logout_window.showMaximized()
+        self.logout_window.showNormal()
         self.hide()
 
     def clicked_add_task_btn(self):
@@ -189,8 +192,11 @@ class CalendarApp(QWidget):
         )
         return [window for window in windows if window is not None]
 
-    def show_window(self, window):
-        window.show()
+    def show_window(self, window, maximized=False):
+        if maximized:
+            window.showMaximized()
+        else:
+            window.show()
         window.raise_()
         window.activateWindow()
 
@@ -243,5 +249,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     login_window = login.LoginWindow()
     window = CalendarApp(login_window)
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())
