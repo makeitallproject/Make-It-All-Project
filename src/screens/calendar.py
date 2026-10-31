@@ -1,7 +1,6 @@
 import sys
 import signal
-import task
-import kanban
+from screens import task, kanban, login_screen
 from pathlib import Path
 from datetime import date
 
@@ -190,7 +189,7 @@ class CalendarApp(QWidget):
         """
         self.logout_window.password_input.setText("")
         self.logout_window.username_input.setText("")
-        self.logout_window.show()
+        self.logout_window.showMaximized()
         self.hide()
 
     def clicked_add_task_btn(self):
@@ -246,6 +245,7 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
     app = QApplication(sys.argv)
-    window = CalendarApp()
+    login_window = login_screen.LoginWindow()
+    window = CalendarApp(login_window)
     window.show()
     sys.exit(app.exec())

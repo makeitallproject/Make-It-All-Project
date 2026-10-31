@@ -9,7 +9,15 @@
 - [Python](https://www.python.org/downloads/) (3.12 or newer)
 - [uv](https://docs.astral.sh/uv/)
 
+### Run the app
+
+```bash
+uv run make-it-all
+```
+
 ### Test the screens
+
+Each screen can also be run on its own for quick previews:
 
 ```bash
 # View the calendar screen
