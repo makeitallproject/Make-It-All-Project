@@ -61,29 +61,22 @@ class LoginWindow(QWidget):
             }
             """)
 
-        # app header and form
+        # vertical layout for a rounded button
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(16, 16, 16, 16)
         main_layout.setSpacing(12)
-        main_layout.addWidget(AppHeader("Make-It-All"))
+        main_layout.addWidget(AppHeader("Make-It-All System"))
         
         # form area
         form_area = QWidget()
-        form_area_layout = QHBoxLayout(form_area)
-        form_area_layout.setContentsMargins(0, 0, 0, 0)
-        form_area_layout.addStretch(1)
-
-        form_column = QWidget()
-        form_column.setFixedWidth(420)
-        form_layout = QVBoxLayout(form_column)
-        form_layout.setContentsMargins(0, 24, 0, 24)
+        form_layout = QVBoxLayout(form_area)
+        form_layout.setContentsMargins(45, 39, 45, 0)
         form_layout.setSpacing(0)
-        form_layout.addStretch(1)
 
         # instruction heading
         instruction_row = QHBoxLayout()
         
-        instruction = QLabel("Sign in to your account")
+        instruction = QLabel("Enter Username/password")
         instruction.setObjectName("instruction")
         instruction.setAlignment(Qt.AlignmentFlag.AlignCenter)
         instruction.setFixedSize(174, 22)
@@ -121,7 +114,7 @@ class LoginWindow(QWidget):
         # enter button
         button_row = QHBoxLayout()
 
-        self.enter_button = QPushButton("Sign in")
+        self.enter_button = QPushButton("Enter")
         self.enter_button.setObjectName("enterButton")
         self.enter_button.setFixedSize(121, 32)
         self.enter_button.clicked.connect(self.submit)
@@ -132,8 +125,6 @@ class LoginWindow(QWidget):
         form_layout.addLayout(button_row)
         form_layout.addStretch()
 
-        form_area_layout.addWidget(form_column)
-        form_area_layout.addStretch(1)
         main_layout.addWidget(form_area, 1)
         
         self.username_input.setFocus()
