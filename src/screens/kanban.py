@@ -2,7 +2,7 @@
 
 import signal
 import sys
-from datetime import date
+from datetime import datetime
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QScrollArea,
-    QSplitter,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -27,16 +27,18 @@ from widgets.truncation import EllipsisLabel
 # TODO un-hardcode these
 CURRENT_USER = "Mish"
 CARD_GAP = 8
+COLUMN_MIN_WIDTH = 260
+COLUMN_MAX_WIDTH = 420
+BOARD_GAP = 10
 
 TASKS = [
     {
         "column": "To Do",
-        "empty_hint": "Work that has not started will show up here.",
         "tasks": [
             {
                 "name": "Set up CI pipeline",
                 "assignee": "Tobi",
-                "due": date(2026, 11, 4),
+                "due": datetime(2026, 11, 4, 17, 0),
                 "subtasks": [
                     {"name": "Install GitHub Actions", "completed": False},
                     {"name": "Add lint step", "completed": False},
@@ -45,7 +47,7 @@ TASKS = [
             {
                 "name": "Write project README",
                 "assignee": "Mish",
-                "due": date(2026, 11, 2),
+                "due": datetime(2026, 11, 2, 12, 0),
                 "subtasks": [],
             },
             {
@@ -54,7 +56,7 @@ TASKS = [
                     "forum screens"
                 ),
                 "assignee": "Charles",
-                "due": date(2026, 11, 7),
+                "due": datetime(2026, 11, 7, 9, 30),
                 "subtasks": [
                     {
                         "name": "List screens that need testing",
@@ -67,13 +69,13 @@ TASKS = [
             {
                 "name": "Collect requirements from each team",
                 "assignee": None,
-                "due": date(2026, 11, 10),
+                "due": datetime(2026, 11, 10, 16, 0),
                 "subtasks": [],
             },
             {
                 "name": "Document the printer setup for new starters",
                 "assignee": "Louis",
-                "due": date(2026, 11, 12),
+                "due": datetime(2026, 11, 12, 11, 0),
                 "subtasks": [
                     {"name": "Photograph the printer panel", "completed": False},
                     {"name": "Add paper refill steps", "completed": False},
@@ -83,12 +85,11 @@ TASKS = [
     },
     {
         "column": "In Progress",
-        "empty_hint": "Work someone is actively doing will show up here.",
         "tasks": [
             {
                 "name": "Design database schema",
                 "assignee": "Kipras",
-                "due": date(2026, 10, 30),
+                "due": datetime(2026, 10, 30, 15, 0),
                 "subtasks": [
                     {"name": "Draft ER diagram", "completed": True},
                     {"name": "Normalize tables", "completed": False},
@@ -97,7 +98,7 @@ TASKS = [
             {
                 "name": "Polish the forum reader pane",
                 "assignee": "Mish",
-                "due": date(2026, 11, 1),
+                "due": datetime(2026, 11, 1, 10, 0),
                 "subtasks": [
                     {"name": "Fix long post titles", "completed": True},
                     {
@@ -110,13 +111,13 @@ TASKS = [
             {
                 "name": "Wire up the task creation form",
                 "assignee": "Evan",
-                "due": date(2026, 11, 3),
+                "due": datetime(2026, 11, 3, 14, 30),
                 "subtasks": [],
             },
             {
                 "name": "Replace hardcoded colours in the calendar stylesheet",
                 "assignee": "Kipras",
-                "due": date(2026, 11, 5),
+                "due": datetime(2026, 11, 5, 13, 0),
                 "subtasks": [
                     {
                         "name": "Audit hardcoded colours",
@@ -128,20 +129,12 @@ TASKS = [
         ],
     },
     {
-        "column": "Review",
-        "empty_hint": (
-            "Tasks waiting for a second pair of eyes will show up here."
-        ),
-        "tasks": [],
-    },
-    {
         "column": "Done",
-        "empty_hint": "Finished work will show up here.",
         "tasks": [
             {
                 "name": "Scaffold repository",
                 "assignee": "Tobi",
-                "finished": date(2026, 10, 20),
+                "finished": datetime(2026, 10, 20, 16, 45),
                 "subtasks": [
                     {"name": "Init git repo", "completed": True},
                     {"name": "Add pyproject.toml", "completed": True},
@@ -150,7 +143,7 @@ TASKS = [
             {
                 "name": "Build the forum screen",
                 "assignee": "Mish",
-                "finished": date(2026, 10, 29),
+                "finished": datetime(2026, 10, 29, 17, 30),
                 "subtasks": [
                     {"name": "Topic rail", "completed": True},
                     {"name": "Post feed", "completed": True},
@@ -160,13 +153,13 @@ TASKS = [
             {
                 "name": "Add the shared avatar widget",
                 "assignee": "Kipras",
-                "finished": date(2026, 10, 27),
+                "finished": datetime(2026, 10, 27, 11, 15),
                 "subtasks": [],
             },
             {
                 "name": "Move shared widgets into src/widgets",
                 "assignee": "Mish",
-                "finished": date(2026, 10, 28),
+                "finished": datetime(2026, 10, 28, 15, 20),
                 "subtasks": [
                     {"name": "Create widgets package", "completed": True},
                 ],
@@ -265,12 +258,21 @@ QScrollArea#columnScroll {
     border: none;
     background: transparent;
 }
+QScrollArea#boardScroll {
+    border: none;
+    background: transparent;
+}
 """
 
 
-def format_date(day: date) -> str:
+def format_date(day: datetime) -> str:
     """Short day and month, e.g. 4 Nov."""
     return f"{day.day} {day.strftime('%b')}"
+
+
+def format_datetime(day: datetime) -> str:
+    """Full date and time, e.g. 4 Nov 2026, 17:00."""
+    return f"{day.day} {day.strftime('%b %Y, %H:%M')}"
 
 
 def card_meta_text(task: dict) -> str:
@@ -292,21 +294,21 @@ def is_overdue(task: dict) -> bool:
     return (
         due is not None
         and task.get("finished") is None
-        and due < date.today()
+        and due < datetime.now()
     )
 
 
 def card_meta_tooltip(task: dict) -> str:
     finished = task.get("finished")
     if finished is not None:
-        return f"Finished {finished.strftime('%d %b %Y')}"
+        return f"Finished {format_datetime(finished)}"
 
     due = task.get("due")
     if due is None:
         return ""
-    if due < date.today():
-        return f"Was due {due.strftime('%d %b %Y')}"
-    return f"Due {due.strftime('%d %b %Y')}"
+    if is_overdue(task):
+        return f"Was due {format_datetime(due)}"
+    return f"Due {format_datetime(due)}"
 
 
 def subtask_word(count: int) -> str:
@@ -457,7 +459,11 @@ class ColumnWidget(QFrame):
         name = column["column"]
 
         self.setObjectName("panel")
-        self.setMinimumWidth(240)
+        self.setMinimumWidth(COLUMN_MIN_WIDTH)
+        self.setMaximumWidth(COLUMN_MAX_WIDTH)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         self.setAccessibleName(f"{name} column")
 
         layout = QVBoxLayout(self)
@@ -483,9 +489,7 @@ class ColumnWidget(QFrame):
                 body_layout.addWidget(TaskCard(task))
             body_layout.addStretch()
         else:
-            body_layout.addWidget(
-                EmptyState(f"No tasks in {name}", column["empty_hint"]), 1
-            )
+            body_layout.addWidget(EmptyState(f"No tasks in {name}"), 1)
 
         self.scroll.setWidget(body)
         layout.addWidget(self.scroll, 1)
@@ -512,12 +516,9 @@ class KanbanScreen(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Make-It-All Board")
-        self.setMinimumSize(1100, 700)
+        self.setWindowTitle("Make-It-All Tasks Board")
+        self.setMinimumSize(600, 560)
         self.setStyleSheet(STYLESHEET)
-
-        task_count = sum(len(column["tasks"]) for column in TASKS)
-        stage_word = "stage" if len(TASKS) == 1 else "stages"
 
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
@@ -530,10 +531,18 @@ class KanbanScreen(QWidget):
             )
         )
 
-        board = QSplitter(Qt.Orientation.Horizontal)
+        board_max_width = (
+            len(TASKS) * COLUMN_MAX_WIDTH + (len(TASKS) - 1) * BOARD_GAP
+        )
+        board = QWidget()
         board.setAccessibleName("Task board")
-        board.setChildrenCollapsible(False)
-        board.setHandleWidth(10)
+        board.setMaximumWidth(board_max_width)
+        board.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        board_layout = QHBoxLayout(board)
+        board_layout.setContentsMargins(0, 0, 0, 0)
+        board_layout.setSpacing(BOARD_GAP)
 
         for index, column in enumerate(TASKS):
             board.addWidget(ColumnWidget(column))
