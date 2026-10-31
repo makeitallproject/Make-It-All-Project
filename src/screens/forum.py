@@ -400,7 +400,7 @@ class ForumScreen(QWidget):
         self.current_user = user
 
         self.setWindowTitle("Make-It-All Forum")
-        self.setMinimumSize(1100, 700)
+        self.setMinimumSize(640, 410)
         self.setStyleSheet(STYLESHEET + primary_button_shades(self))
 
         self.selected_topic_id = TOPICS[0]["id"]
@@ -439,7 +439,7 @@ class ForumScreen(QWidget):
     def build_topic_panel(self) -> QWidget:
         panel = QFrame()
         panel.setObjectName("panel")
-        panel.setMinimumWidth(210)
+        panel.setMinimumWidth(165)
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(10, 10, 10, 10)
@@ -469,7 +469,7 @@ class ForumScreen(QWidget):
     def build_feed_panel(self) -> QWidget:
         panel = QFrame()
         panel.setObjectName("panel")
-        panel.setMinimumWidth(320)
+        panel.setMinimumWidth(220)
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(12, 12, 12, 12)
@@ -563,7 +563,7 @@ class ForumScreen(QWidget):
     def build_reader_panel(self) -> QWidget:
         panel = QFrame()
         panel.setObjectName("panel")
-        panel.setMinimumWidth(320)
+        panel.setMinimumWidth(200)
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -808,6 +808,5 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
     window = ForumScreen()
-    window.resize(1280, 820)
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())

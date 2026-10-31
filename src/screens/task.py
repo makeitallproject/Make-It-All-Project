@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
         self.current_user = user
         self.setWindowTitle("Create New Task")
         self.resize(600, 700)
+        self.setMinimumSize(450, 600)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
