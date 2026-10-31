@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
 
         #page layout
         ladder = QVBoxLayout()
+        ladder.setContentsMargins(16, 16, 16, 16)
         ladder.setSpacing(0)
         
         #header
@@ -127,7 +128,6 @@ class MainWindow(QMainWindow):
         
         #to-do list
         middleContainer = QWidget()
-        middleContainer.setObjectName("taskWindow")
         containerWidgets = QVBoxLayout()
         
         movementArrows = QHBoxLayout()
