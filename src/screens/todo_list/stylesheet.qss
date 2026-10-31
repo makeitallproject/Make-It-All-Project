@@ -1,0 +1,16 @@
+QWidget#taskWindow {
+	border: 2px solid #000000;
+}
+QLabel#pageNumber {
+	font-size: 32px;
+}
+QLabel#subtask {
+	font-size: 14px;
+}
+QLabel#task {
+	font-size: 40px;
+	border: 2px solid #000000;
+}
+QPushButton {
+	border: 0px solid #000000;
+}
