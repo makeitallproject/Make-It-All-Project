@@ -42,7 +42,7 @@ task_list = [{"date" : QDate(2026, 10, 30), "tasks": [{"name" : "Finish Team Pro
 
 class CalendarApp(QWidget):
 
-    def __init__(self, login_window):
+    def __init__(self, login_window=None):
         super().__init__()
 
         self.setWindowTitle("Calendar")
@@ -190,10 +190,11 @@ class CalendarApp(QWidget):
         """
         show Tobi's log in window
         """
-        self.logout_window.password_input.setText("")
-        self.logout_window.username_input.setText("")
-        self.logout_window.show()
-        self.hide()
+        if self.logout_window != None:
+            self.logout_window.password_input.setText("")
+            self.logout_window.username_input.setText("")
+            self.logout_window.show()
+            self.hide()
 
     def clicked_add_task_btn(self):
         """
@@ -241,16 +242,12 @@ class SpecialCalendar(QCalendarWidget):
      
             painter.restore()
 
-
-#temporarily diabled this section as the calendar screen cannot be opened on its own due to circular imports
-
-#if __name__ == "__main__":
+if __name__ == "__main__":
     # This guard allows Calendar.py to be imported for testing without opening
     # a window, while still supporting direct execution from the command line.
 
-    #signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
-    #app = QApplication(sys.argv)
-    #login_window = login.LoginWindow()
-    #window = CalendarApp(login_window)
-    #window.show()
-    #sys.exit(app.exec())
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
+    app = QApplication(sys.argv)
+    window = CalendarApp()
+    window.showMaximized()
+    sys.exit(app.exec())
