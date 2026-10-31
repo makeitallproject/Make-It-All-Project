@@ -115,6 +115,7 @@ class MainWindow(QMainWindow):
         
         back_btn = QPushButton("Back")
         back_btn.setFixedSize(100, 45)
+        back_btn.clicked.connect(self.clicked_back_btn)
         
         self.submit_btn = QPushButton("Submit")
         self.submit_btn.setFixedSize(120, 45)
@@ -141,6 +142,10 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Document", "", "All Files (*)")
         if file_path:
             self.docs_input.setText(file_path)
+
+
+    def clicked_back_btn(self):
+        self.hide()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 # @toblobs // last updated 27.10.26
 
 import sys
+import calendar
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal, QRectF
@@ -61,6 +62,7 @@ class LoginWindow(QWidget):
         self.setWindowTitle("Make-It-All Login Screen")
         self.resize(700, 560)
         self.setMinimumSize(700, 560)
+        self.showMaximized()
         
         self.setObjectName("loginWindow")
 
@@ -192,12 +194,18 @@ def main():
     app = QApplication(sys.argv)
     window = LoginWindow()
 
+    calendar_window = calendar.CalendarApp(window)
+    calendar_window.hide()
+
     # previewing with a default password
     def preview_login(_username: str, _password: str):
         
         QMessageBox.information(window, "Login prototype", f"Form submitted.")
-        print(_username)
-        print(_password)
+        #print(_username)
+        #print(_password)
+
+        window.hide()
+        calendar_window.showMaximized()
 
     window.login_requested.connect(preview_login)
     

@@ -162,6 +162,7 @@ class KanbanScreen(QWidget):
         super().__init__()
 
         self.setWindowTitle("Project tasks (Kanban view)")
+        self.setMinimumSize(900, 700)
 
         layout = QHBoxLayout(self)
 
