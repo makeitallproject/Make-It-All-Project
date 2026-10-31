@@ -1,6 +1,6 @@
 import sys
 import signal
-from screens import task, kanban, login_screen
+from screens import login, task, kanban
 from pathlib import Path
 from datetime import date
 
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # According to Mish, this "Make Ctrl+C work"
     app = QApplication(sys.argv)
-    login_window = login_screen.LoginWindow()
+    login_window = login.LoginWindow()
     window = CalendarApp(login_window)
     window.show()
     sys.exit(app.exec())
