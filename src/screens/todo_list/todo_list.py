@@ -1,5 +1,3 @@
-"""To-do list screen backed by the shared in-memory task store."""
-
 import signal
 import sys
 
@@ -28,11 +26,13 @@ from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
 from widgets.truncation import EllipsisLabel
 
+# Avoid the boxes becoming super wide on large window sizes
+# (we keep them centred instead)
 CONTENT_MAX_WIDTH = 900
 LIST_GAP = 10
 
-# Matches the type scale used by the kanban and forum screens: 12 meta,
-# 13 UI, 14 card title, 20 screen title.
+# Based on the font sizes of the forum screen
+# We should have some central type scale in the future probably
 STYLESHEET = """
 QCheckBox {
     font-size: 13px;
@@ -76,7 +76,7 @@ QScrollArea#listScroll {
 
 
 class TaskCard(QFrame):
-    """One task with its subtasks, completion state, and delete action."""
+    """Card for a single task in the to-do list"""
 
     delete_requested = pyqtSignal(dict)
     changed = pyqtSignal()
@@ -108,7 +108,7 @@ class TaskCard(QFrame):
 
         delete_button = QPushButton("Delete")
         delete_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon)
+            self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon) # type: ignore
         )
         delete_button.setCursor(Qt.CursorShape.PointingHandCursor)
         delete_button.setAccessibleName(f"Delete {self.task['name']}")
@@ -117,6 +117,7 @@ class TaskCard(QFrame):
         return row
 
     def build_meta_row(self) -> QHBoxLayout:
+        """The "meta row" contains the assignee and due date"""
         row = QHBoxLayout()
         row.setSpacing(6)
 
@@ -138,6 +139,7 @@ class TaskCard(QFrame):
         return row
 
     def build_body(self) -> QWidget:
+        """The body contains the list of subtasks (or one checkbox if no subtasks)"""
         body = QWidget()
         layout = QVBoxLayout(body)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -171,6 +173,7 @@ class TaskCard(QFrame):
         return body
 
     def build_progress(self) -> QWidget:
+        """Build the progress bar part"""
         holder = QWidget()
         layout = QVBoxLayout(holder)
         layout.setContentsMargins(0, 4, 0, 0)
@@ -190,6 +193,7 @@ class TaskCard(QFrame):
         return holder
 
     def update_progress(self) -> None:
+        """Update the progress bar value"""
         if not self.progress_label or not self.progress_bar:
             print("Warn: update_progress called without progress bar present")
             return
@@ -206,6 +210,8 @@ class TaskCard(QFrame):
 
     def set_task_completed(self, completed: bool) -> None:
         self.task["completed"] = completed
+        # Update columns for the kanban board
+        # TODO do this in a smarter way?
         if completed:
             self.task["column"] = "Done"
         elif self.task["column"] == "Done":
@@ -344,11 +350,12 @@ class TodoListScreen(QWidget):
             self.add_task_window.set_user(self.current_user)
 
 
-def startup() -> None:
+def run_standalone() -> None:
+    """Run the to-do list screen directly from the command line (for testing)"""
+    from screens import kanban
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
-
-    from screens import kanban
 
     window = TodoListScreen()
     board = kanban.KanbanScreen()
@@ -361,4 +368,4 @@ def startup() -> None:
 
 
 if __name__ == "__main__":
-    startup()
+    run_standalone()
