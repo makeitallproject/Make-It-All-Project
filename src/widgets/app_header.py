@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QStyle,
     QVBoxLayout,
     QWidget,
 )
@@ -74,11 +73,6 @@ class AppHeader(QWidget):
 
         if back_to_calendar:
             self.back_button = QPushButton("Back to Calendar")
-            self.back_button.setIcon(
-                self.style().standardIcon(
-                    QStyle.StandardPixmap.SP_ArrowBack
-                )
-            )
             self.back_button.setObjectName("backButton")
             self.back_button.setCursor(Qt.CursorShape.PointingHandCursor)
             self.back_button.clicked.connect(lambda: self.back_requested.emit())
