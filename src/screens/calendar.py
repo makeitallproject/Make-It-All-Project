@@ -159,7 +159,7 @@ class CalendarApp(QWidget):
 
     def show_todo_window(self):
         if self.todo_window is None:
-            self.todo_window = todo_list.MainWindow(user=self.current_user)
+            self.todo_window = todo_list.TodoListScreen(user=self.current_user)
             self.todo_window.header.back_requested.connect(
                 lambda: self.back_to_calendar(self.todo_window)
             )

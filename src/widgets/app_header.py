@@ -4,13 +4,21 @@ from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QStyle,
+    QVBoxLayout,
+    QWidget,
+)
 
 import state
 
 from .avatar import Avatar
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+LOGO_MIN_WIDTH = 560
 
 STYLESHEET = """
 QLabel#screenTitle {
@@ -66,6 +74,11 @@ class AppHeader(QWidget):
 
         if back_to_calendar:
             self.back_button = QPushButton("Back to Calendar")
+            self.back_button.setIcon(
+                self.style().standardIcon(
+                    QStyle.StandardPixmap.SP_ArrowBack
+                )
+            )
             self.back_button.setObjectName("backButton")
             self.back_button.setCursor(Qt.CursorShape.PointingHandCursor)
             self.back_button.clicked.connect(lambda: self.back_requested.emit())
@@ -95,10 +108,10 @@ class AppHeader(QWidget):
         self.user_widget.setLayout(user_layout)
         layout.addWidget(self.user_widget)
 
-        logo = QLabel()
+        self.logo = QLabel()
         logo_path = ASSETS_DIR / "company_logo.png"
         if logo_path.exists():
-            logo.setPixmap(
+            self.logo.setPixmap(
                 QPixmap(str(logo_path)).scaled(
                     140,
                     44,
@@ -106,15 +119,20 @@ class AppHeader(QWidget):
                     Qt.TransformationMode.SmoothTransformation,
                 )
             )
-        logo.setAccessibleName("Make-It-All logo")
-        logo.setAlignment(
+        self.logo.setAccessibleName("Make-It-All logo")
+        self.logo.setAlignment(
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
         )
-        layout.addWidget(logo)
+        layout.addWidget(self.logo)
 
         self.set_user(user)
         if not show_user:
             self.user_widget.hide()
+
+    def resizeEvent(self, event):  # type: ignore
+        super().resizeEvent(event)
+        # Keep the title and user visible on narrow windows.
+        self.logo.setVisible(self.width() >= LOGO_MIN_WIDTH)
 
     def set_user(self, user: str) -> None:
         """Update the signed-in user badge, falling back to the demo user."""
