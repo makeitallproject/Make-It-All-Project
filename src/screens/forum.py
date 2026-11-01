@@ -27,15 +27,13 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+import state
 from widgets.app_header import AppHeader
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
 from widgets.forum.growing_text_edit import GrowingTextEdit
 from widgets.forum.post_card import PostCard
 from widgets.forum.topic_row import TopicRow
-
-# TODO un-hardcode these
-CURRENT_USER = "Mish"
 
 # Keep the line width comfortable on wide screens
 # TODO this should be dynamic based on font size
@@ -394,10 +392,10 @@ class TopicDialog(QDialog):
 class ForumScreen(QWidget):
     """The 3-pane forum screen"""
 
-    def __init__(self, user: str = CURRENT_USER):
+    def __init__(self, user: str = ""):
         super().__init__()
 
-        self.current_user = user
+        self.current_user = user or state.get_user()
 
         self.setWindowTitle("Make-It-All Forum")
         self.setMinimumSize(640, 410)
@@ -409,7 +407,9 @@ class ForumScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        self.header = AppHeader("Forum", user=user, back_to_calendar=True)
+        self.header = AppHeader(
+            "Forum", user=self.current_user, back_to_calendar=True
+        )
         root.addWidget(self.header)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -433,8 +433,8 @@ class ForumScreen(QWidget):
 
     def set_user(self, user: str) -> None:
         """Update the signed-in user shown in the header."""
-        self.current_user = user
-        self.header.set_user(user)
+        self.current_user = user or state.get_user()
+        self.header.set_user(self.current_user)
 
     def build_topic_panel(self) -> QWidget:
         panel = QFrame()

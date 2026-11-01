@@ -1,5 +1,8 @@
 import signal
 import sys
+from datetime import datetime, time
+
+import state
 from PyQt6.QtCore import Qt, QDate, QTime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, 
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
@@ -10,10 +13,10 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget,
 from widgets.app_header import AppHeader
 
 class MainWindow(QMainWindow):
-    def __init__(self, user: str = "Mish"):
+    def __init__(self, user: str = ""):
         super().__init__()
-        
-        self.current_user = user
+
+        self.current_user = user or state.get_user()
         self.setWindowTitle("Create New Task")
         self.resize(600, 700)
         self.setMinimumSize(450, 600)
@@ -25,7 +28,7 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(16)
 
         # top section of the screen, including company logo
-        self.header = AppHeader("New Task", user=user)
+        self.header = AppHeader("New Task", user=self.current_user)
         main_layout.addWidget(self.header)
 
         #middle section of the page e.g. the form
@@ -116,6 +119,7 @@ class MainWindow(QMainWindow):
         self.submit_btn = QPushButton("Submit")
         self.submit_btn.setFixedSize(120, 45)
         self.submit_btn.setEnabled(False)
+        self.submit_btn.clicked.connect(self.submit)
         
         bottom_layout.addWidget(back_btn)
         bottom_layout.addStretch() 
@@ -126,8 +130,33 @@ class MainWindow(QMainWindow):
         self.title_input.textChanged.connect(self.validate_form)
 
     def set_user(self, user: str) -> None:
-        self.current_user = user
-        self.header.set_user(user)
+        self.current_user = user or state.get_user()
+        self.header.set_user(self.current_user)
+
+    def submit(self):
+        """Add the completed form to the shared task store."""
+        title = self.title_input.text().strip()
+        if not title:
+            return
+
+        assignee = self.people_input.currentText()
+        due = datetime.combine(self.due_input.date().toPyDate(), time.min)
+        state.add_task(
+            {
+                "name": title,
+                "notes": self.notes_input.toPlainText().strip(),
+                "assignee": None if assignee == "Unassigned" else assignee,
+                "due": due,
+                "finished": None,
+                "column": "To Do",
+                "completed": False,
+                "subtasks": [],
+            }
+        )
+
+        self.title_input.clear()
+        self.notes_input.clear()
+        self.hide()
 
     def toggle_reminders(self, checked):
         self.reminders_container.setVisible(checked)

@@ -65,7 +65,9 @@ class LoginWindow(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(16, 16, 16, 16)
         main_layout.setSpacing(12)
-        main_layout.addWidget(AppHeader("Make-It-All System"))
+        main_layout.addWidget(
+            AppHeader("Make-It-All System", show_user=False)
+        )
         
         # form area
         form_area = QWidget()
