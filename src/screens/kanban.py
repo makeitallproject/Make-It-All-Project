@@ -2,7 +2,6 @@
 
 import signal
 import sys
-from datetime import datetime
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
@@ -21,6 +20,7 @@ from PyQt6.QtWidgets import (
 
 import state
 from screens import task as task_screen
+from widgets import task_meta
 from widgets.app_header import AppHeader
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
@@ -117,56 +117,6 @@ QScrollArea#boardScroll {
 """
 
 
-def format_date(day: datetime) -> str:
-    """Short day and month, e.g. 4 Nov."""
-    return f"{day.day} {day.strftime('%b')}"
-
-
-def format_datetime(day: datetime) -> str:
-    """Full date and time, e.g. 4 Nov 2026, 17:00."""
-    return f"{day.day} {day.strftime('%b %Y, %H:%M')}"
-
-
-def card_meta_text(task: dict) -> str:
-    """Due or finished date, or an empty string when neither is set."""
-    finished = task.get("finished")
-    if finished is not None:
-        return f"Done {format_date(finished)}"
-
-    due = task.get("due")
-    if due is None:
-        return ""
-    if is_overdue(task):
-        return f"Overdue · {format_date(due)}"
-    return f"Due {format_date(due)}"
-
-
-def is_overdue(task: dict) -> bool:
-    due = task.get("due")
-    return (
-        due is not None
-        and task.get("finished") is None
-        and due < datetime.now()
-    )
-
-
-def card_meta_tooltip(task: dict) -> str:
-    finished = task.get("finished")
-    if finished is not None:
-        return f"Finished {format_datetime(finished)}"
-
-    due = task.get("due")
-    if due is None:
-        return ""
-    if is_overdue(task):
-        return f"Was due {format_datetime(due)}"
-    return f"Due {format_datetime(due)}"
-
-
-def subtask_word(count: int) -> str:
-    return "subtask" if count == 1 else "subtasks"
-
-
 class TaskCard(QFrame):
     """One task. Collapsed by default, with a footer to reveal subtasks."""
 
@@ -223,13 +173,15 @@ class TaskCard(QFrame):
         name.setObjectName("cardAuthor")
         row.addWidget(name, 1)
 
-        meta_text = card_meta_text(self.task)
+        meta_text = task_meta.meta_text(self.task)
         if meta_text:
             meta = QLabel(meta_text)
             meta.setObjectName(
-                "cardOverdue" if is_overdue(self.task) else "cardMeta"
+                "cardOverdue"
+                if task_meta.is_overdue(self.task)
+                else "cardMeta"
             )
-            meta.setToolTip(card_meta_tooltip(self.task))
+            meta.setToolTip(task_meta.meta_tooltip(self.task))
             row.addWidget(meta)
         return row
 
@@ -240,9 +192,7 @@ class TaskCard(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
 
-        label = QLabel(
-            f"{self.done_count} of {total} {subtask_word(total)} done"
-        )
+        label = QLabel(task_meta.progress_text(self.done_count, total))
         label.setObjectName("cardMeta")
         layout.addWidget(label)
 
@@ -265,6 +215,10 @@ class TaskCard(QFrame):
         for subtask in self.subtasks:
             check = QCheckBox(subtask["name"])
             check.setChecked(subtask["completed"])
+            check.setSizePolicy(
+                QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
+            )
+            check.setToolTip(subtask["name"])
             check.setCursor(Qt.CursorShape.PointingHandCursor)
             layout.addWidget(check)
         return area
@@ -282,7 +236,7 @@ class TaskCard(QFrame):
     def expand_text(self) -> str:
         verb = "Hide" if self.expanded else "Show"
         count = len(self.subtasks)
-        return f"{verb} {count} {subtask_word(count)}"
+        return f"{verb} {count} {task_meta.subtask_word(count)}"
 
     def toggle_subtasks(self) -> None:
         self.expanded = not self.expanded
@@ -469,7 +423,7 @@ if __name__ == "__main__":
     from screens.todo_list import todo_list
 
     window = KanbanScreen()
-    todo = todo_list.MainWindow()
+    todo = todo_list.TodoListScreen()
     window.todo_requested.connect(lambda: (window.hide(), todo.show()))
     todo.kanban_requested.connect(lambda: (todo.hide(), window.show()))
     todo.header.back_requested.connect(lambda: (todo.hide(), window.show()))
