@@ -190,6 +190,10 @@ class TaskCard(QFrame):
         return holder
 
     def update_progress(self) -> None:
+        if not self.progress_label or not self.progress_bar:
+            print("Warn: update_progress called without progress bar present")
+            return
+
         subtasks = self.task.get("subtasks", [])
         total = len(subtasks)
         done = sum(1 for subtask in subtasks if subtask["completed"])
@@ -247,18 +251,18 @@ class TodoListScreen(QWidget):
         controls.addWidget(self.kanban_btn)
         controls.addStretch()
 
-        self.scroll = QScrollArea()
-        self.scroll.setObjectName("listScroll")
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.list_scroll = QScrollArea()
+        self.list_scroll.setObjectName("listScroll")
+        self.list_scroll.setWidgetResizable(True)
+        self.list_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.list_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.list_container = QWidget()
         self.list_container.setAccessibleName("Task list")
         self.list_layout = QVBoxLayout(self.list_container)
         self.list_layout.setContentsMargins(0, 0, 0, 0)
         self.list_layout.setSpacing(LIST_GAP)
-        self.scroll.setWidget(self.list_container)
+        self.list_scroll.setWidget(self.list_container)
 
         content = QWidget()
         content.setMaximumWidth(CONTENT_MAX_WIDTH)
@@ -266,10 +270,10 @@ class TodoListScreen(QWidget):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(12)
         content_layout.addLayout(controls)
-        content_layout.addWidget(self.scroll, 1)
+        content_layout.addWidget(self.list_scroll, 1)
 
         # Grow the column to its maximum width before the side gaps share
-        # the remaining space, so the list stays centered on wide screens.
+        # the remaining space, so the list stays centred on wide screens.
         content_row = QHBoxLayout()
         content_row.addStretch(1)
         content_row.addWidget(content, 100)
@@ -280,13 +284,13 @@ class TodoListScreen(QWidget):
         state.subscribe(self.refresh)
 
     def refresh(self) -> None:
-        """Rebuild the list from the shared task store."""
+        """Rebuild the list from the global task store."""
         if self.suppress_refresh:
             return
 
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
-            widget = item.widget()
+            widget = item.widget() if item else None
             if widget is not None:
                 widget.deleteLater()
 
