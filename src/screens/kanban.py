@@ -4,7 +4,7 @@ import signal
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -19,159 +19,23 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+import state
+from screens import task as task_screen
 from widgets.app_header import AppHeader
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
 from widgets.truncation import EllipsisLabel
 
-# TODO un-hardcode these
-CURRENT_USER = "Mish"
 CARD_GAP = 8
 COLUMN_MIN_WIDTH = 260
 COLUMN_MAX_WIDTH = 420
 BOARD_GAP = 10
-
-TASKS = [
-    {
-        "column": "To Do",
-        "tasks": [
-            {
-                "name": "Set up CI pipeline",
-                "assignee": "Tobi",
-                "due": datetime(2026, 11, 4, 17, 0),
-                "subtasks": [
-                    {"name": "Install GitHub Actions", "completed": False},
-                    {"name": "Add lint step", "completed": False},
-                ],
-            },
-            {
-                "name": "Write project README",
-                "assignee": "Mish",
-                "due": datetime(2026, 11, 2, 12, 0),
-                "subtasks": [],
-            },
-            {
-                "name": (
-                    "Audit keyboard navigation across the calendar and "
-                    "forum screens"
-                ),
-                "assignee": "Charles",
-                "due": datetime(2026, 11, 7, 9, 30),
-                "subtasks": [
-                    {
-                        "name": "List screens that need testing",
-                        "completed": True,
-                    },
-                    {"name": "Document focus order", "completed": False},
-                    {"name": "Test with keyboard only", "completed": False},
-                ],
-            },
-            {
-                "name": "Collect requirements from each team",
-                "assignee": None,
-                "due": datetime(2026, 11, 10, 16, 0),
-                "subtasks": [],
-            },
-            {
-                "name": "Document the printer setup for new starters",
-                "assignee": "Louis",
-                "due": datetime(2026, 11, 12, 11, 0),
-                "subtasks": [
-                    {"name": "Photograph the printer panel", "completed": False},
-                    {"name": "Add paper refill steps", "completed": False},
-                ],
-            },
-        ],
-    },
-    {
-        "column": "In Progress",
-        "tasks": [
-            {
-                "name": "Design database schema",
-                "assignee": "Kipras",
-                "due": datetime(2026, 10, 30, 15, 0),
-                "subtasks": [
-                    {"name": "Draft ER diagram", "completed": True},
-                    {"name": "Normalize tables", "completed": False},
-                ],
-            },
-            {
-                "name": "Polish the forum reader pane",
-                "assignee": "Mish",
-                "due": datetime(2026, 11, 1, 10, 0),
-                "subtasks": [
-                    {"name": "Fix long post titles", "completed": True},
-                    {
-                        "name": "Keep the reading measure at 700px",
-                        "completed": True,
-                    },
-                    {"name": "Add paragraph spacing", "completed": False},
-                ],
-            },
-            {
-                "name": "Wire up the task creation form",
-                "assignee": "Evan",
-                "due": datetime(2026, 11, 3, 14, 30),
-                "subtasks": [],
-            },
-            {
-                "name": "Replace hardcoded colours in the calendar stylesheet",
-                "assignee": "Kipras",
-                "due": datetime(2026, 11, 5, 13, 0),
-                "subtasks": [
-                    {
-                        "name": "Audit hardcoded colours",
-                        "completed": False,
-                    },
-                    {"name": "Use palette roles", "completed": False},
-                ],
-            },
-        ],
-    },
-    {
-        "column": "Done",
-        "tasks": [
-            {
-                "name": "Scaffold repository",
-                "assignee": "Tobi",
-                "finished": datetime(2026, 10, 20, 16, 45),
-                "subtasks": [
-                    {"name": "Init git repo", "completed": True},
-                    {"name": "Add pyproject.toml", "completed": True},
-                ],
-            },
-            {
-                "name": "Build the forum screen",
-                "assignee": "Mish",
-                "finished": datetime(2026, 10, 29, 17, 30),
-                "subtasks": [
-                    {"name": "Topic rail", "completed": True},
-                    {"name": "Post feed", "completed": True},
-                    {"name": "Reader pane", "completed": True},
-                ],
-            },
-            {
-                "name": "Add the shared avatar widget",
-                "assignee": "Kipras",
-                "finished": datetime(2026, 10, 27, 11, 15),
-                "subtasks": [],
-            },
-            {
-                "name": "Move shared widgets into src/widgets",
-                "assignee": "Mish",
-                "finished": datetime(2026, 10, 28, 15, 20),
-                "subtasks": [
-                    {"name": "Create widgets package", "completed": True},
-                ],
-            },
-        ],
-    },
-]
+COLUMNS = ["To Do", "In Progress", "Done"]
 
 # Matches the type scale used by the forum screen: 12 meta, 13 UI, 14 card
 # title, 16 column title, 20 screen title.
 STYLESHEET = """
-QWidget {
+QCheckBox {
     font-size: 13px;
 }
 QLabel#columnTitle {
@@ -501,9 +365,13 @@ class ColumnWidget(QFrame):
 
 
 class KanbanScreen(QWidget):
-    def __init__(self, user: str = CURRENT_USER):
+    todo_requested = pyqtSignal()
+
+    def __init__(self, user: str = ""):
         super().__init__()
 
+        self.current_user = user or state.get_user()
+        self.add_task_window = None
         self.setWindowTitle("Make-It-All Tasks Board")
         self.setMinimumSize(500, 200)
         self.resize(1100, 780)
@@ -512,24 +380,33 @@ class KanbanScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(12)
-        self.header = AppHeader("Tasks Board", user=user, back_to_calendar=True)
+        self.header = AppHeader(
+            "Tasks Board", user=self.current_user, back_to_calendar=True
+        )
         root.addWidget(self.header)
 
+        controls = QHBoxLayout()
+        self.create_task_btn = QPushButton("Create a task")
+        self.create_task_btn.clicked.connect(self.open_add_task)
+        self.todo_btn = QPushButton("Switch to To-Do List")
+        self.todo_btn.clicked.connect(lambda: self.todo_requested.emit())
+        controls.addWidget(self.create_task_btn)
+        controls.addWidget(self.todo_btn)
+        controls.addStretch()
+        root.addLayout(controls)
+
         board_max_width = (
-            len(TASKS) * COLUMN_MAX_WIDTH + (len(TASKS) - 1) * BOARD_GAP
+            len(COLUMNS) * COLUMN_MAX_WIDTH + (len(COLUMNS) - 1) * BOARD_GAP
         )
-        board = QWidget()
-        board.setAccessibleName("Task board")
-        board.setMaximumWidth(board_max_width)
-        board.setSizePolicy(
+        self.board = QWidget()
+        self.board.setAccessibleName("Task board")
+        self.board.setMaximumWidth(board_max_width)
+        self.board.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        board_layout = QHBoxLayout(board)
-        board_layout.setContentsMargins(0, 0, 0, 0)
-        board_layout.setSpacing(BOARD_GAP)
-
-        for column in TASKS:
-            board_layout.addWidget(ColumnWidget(column), 1)
+        self.board_layout = QHBoxLayout(self.board)
+        self.board_layout.setContentsMargins(0, 0, 0, 0)
+        self.board_layout.setSpacing(BOARD_GAP)
 
         board_scroll = QScrollArea()
         board_scroll.setObjectName("boardScroll")
@@ -545,18 +422,56 @@ class KanbanScreen(QWidget):
         board_scroll.setAlignment(
             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
         )
-        board_scroll.setWidget(board)
+        board_scroll.setWidget(self.board)
         root.addWidget(board_scroll, 1)
+
+        self.refresh()
+        state.subscribe(self.refresh)
+
+    def refresh(self) -> None:
+        """Rebuild the columns from the shared task store."""
+        while self.board_layout.count():
+            item = self.board_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        for column_name in COLUMNS:
+            column_tasks = [
+                task
+                for task in state.tasks
+                if task.get("column") == column_name
+            ]
+            column = {"column": column_name, "tasks": column_tasks}
+            self.board_layout.addWidget(ColumnWidget(column), 1)
+
+    def open_add_task(self) -> None:
+        if self.add_task_window is None:
+            self.add_task_window = task_screen.MainWindow(
+                user=self.current_user
+            )
+        self.add_task_window.show()
+        self.add_task_window.raise_()
+        self.add_task_window.activateWindow()
 
     def set_user(self, user: str) -> None:
         """Update the signed-in user shown in the header."""
-        self.current_user = user
-        self.header.set_user(user)
+        self.current_user = user or state.get_user()
+        self.header.set_user(self.current_user)
+        if self.add_task_window is not None:
+            self.add_task_window.set_user(self.current_user)
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
+
+    from screens.todo_list import todo_list
+
     window = KanbanScreen()
+    todo = todo_list.MainWindow()
+    window.todo_requested.connect(lambda: (window.hide(), todo.show()))
+    todo.kanban_requested.connect(lambda: (todo.hide(), window.show()))
+    todo.header.back_requested.connect(lambda: (todo.hide(), window.show()))
     window.show()
     sys.exit(app.exec())

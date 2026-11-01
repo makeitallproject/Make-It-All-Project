@@ -6,6 +6,8 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
+import state
+
 from .avatar import Avatar
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
@@ -51,10 +53,12 @@ class AppHeader(QWidget):
         title: str,
         user: str = "",
         back_to_calendar: bool = False,
+        show_user: bool = True,
         parent=None,
     ):
         super().__init__(parent)
         self.setStyleSheet(STYLESHEET)
+        user = user or state.get_user()
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -81,7 +85,7 @@ class AppHeader(QWidget):
         user_layout.setContentsMargins(0, 0, 0, 0)
         user_layout.setSpacing(6)
 
-        self.user_avatar = Avatar(user or "?", 28)
+        self.user_avatar = Avatar(user, 28)
         self.user_name = QLabel(user)
         self.user_name.setObjectName("headerUser")
         user_layout.addWidget(self.user_avatar)
@@ -109,15 +113,11 @@ class AppHeader(QWidget):
         layout.addWidget(logo)
 
         self.set_user(user)
+        if not show_user:
+            self.user_widget.hide()
 
     def set_user(self, user: str) -> None:
-        """Update, show, or hide the signed-in user badge."""
-        self.user = user
-        if user:
-            self.user_avatar.set_name(user)
-            self.user_name.setText(user)
-            self.user_widget.show()
-        else:
-            self.user_avatar.set_name("?")
-            self.user_name.clear()
-            self.user_widget.hide()
+        """Update the signed-in user badge, falling back to the demo user."""
+        self.user = user or state.get_user()
+        self.user_avatar.set_name(self.user)
+        self.user_name.setText(self.user)

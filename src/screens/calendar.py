@@ -1,44 +1,37 @@
-import sys
 import signal
-from screens import forum, login, task, kanban
-from pathlib import Path
-from datetime import date
+import sys
 
-# QDate is used for Qt widgets and calendar calculations; date is used as a
-# simple dictionary key for storing tasks independently of the UI.
 from PyQt6.QtCore import QDate, Qt, QPoint
-from PyQt6.QtGui import QFont, QPainter, QColor, QPixmap
+from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import (
     QApplication,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
     QPushButton,
-    QSizePolicy,
-    QSpinBox,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
     QCalendarWidget,
-    QLineEdit,
-    QFrame,
-    QSpacerItem
+    QFrame
 )
 
+import state
+from screens import forum, kanban, login, task
+from screens.todo_list import todo_list
 from widgets.app_header import AppHeader
 
 is_manager = True
-CURRENT_USER = "Mish"
 
-task_list = [{"date" : QDate(2026, 10, 30), "tasks": [{"name" : "Finish Team Project", "completed": False},{"name" : "Team networking event", "completed": True}]},
-             {"date" : QDate(2026, 10, 18), "tasks": [{"name" : "Finish Team Project", "completed": False}]},]
+
+def tasks_due_on(selected_date: QDate) -> list[dict]:
+    """All shared tasks whose due date matches the selected calendar day."""
+    return [
+        task
+        for task in state.tasks
+        if task.get("due") is not None
+        and QDate(task["due"].year, task["due"].month, task["due"].day)
+        == selected_date
+    ]
+
 
 class CalendarApp(QWidget):
 
@@ -49,8 +42,9 @@ class CalendarApp(QWidget):
         self.setMinimumSize(480, 400)
 
         self.login_window = login_window
-        self.current_user = CURRENT_USER
+        self.current_user = state.get_user()
         self.all_tasks_window = None
+        self.todo_window = None
         self.knowledge_window = None
         self.add_task_window = None
 
@@ -120,42 +114,63 @@ class CalendarApp(QWidget):
         layout.addWidget(self.show_tasks)
         self.setLayout(layout)
         self.on_date_selected()
+        state.subscribe(self.refresh)
+
+    def refresh(self):
+        """Redraw the task dots and the selected day's task list."""
+        self.calendar.update()
+        self.on_date_selected()
 
     def on_date_selected(self):
         """
         display a box with tasks in
         """
         selected_date = self.calendar.selectedDate()
+        tasks = tasks_due_on(selected_date)
 
-        #if selected date has tasks, show them
-        for day in task_list:
-             if day["date"] == selected_date:
-                task_txt = f"Tasks due on {selected_date.toString()}:\n"
-                for task in day["tasks"]:
-                    status = "Completed" if task["completed"] else "Incomplete"
-                    task_txt += f"{task['name']}, {status}\n"
+        if tasks:
+            task_txt = f"Tasks due on {selected_date.toString()}:\n"
+            for task in tasks:
+                status = "Completed" if state.is_completed(task) else "Incomplete"
+                task_txt += f"{task['name']}, {status}\n"
 
-                self.show_tasks.setText(task_txt)
-                return
+            self.show_tasks.setText(task_txt)
+            return
 
-        #otherwise, say there are no tasks due on this date
         self.show_tasks.setText("There are no tasks due on this date")
 
     def clicked_all_tasks_btn(self):
         """
-        show Mish's Kanban board window
+        show the Kanban board window
         """
+        self.show_kanban_window()
+
+    def show_kanban_window(self):
         if self.all_tasks_window is None:
             self.all_tasks_window = kanban.KanbanScreen(user=self.current_user)
             # allow the button in the header to re-focus/re-open this window
             self.all_tasks_window.header.back_requested.connect(
                 lambda: self.back_to_calendar(self.all_tasks_window)
             )
+            self.all_tasks_window.todo_requested.connect(self.show_todo_window)
+        if self.todo_window is not None:
+            self.todo_window.close()
         self.show_window(self.all_tasks_window)
+
+    def show_todo_window(self):
+        if self.todo_window is None:
+            self.todo_window = todo_list.MainWindow(user=self.current_user)
+            self.todo_window.header.back_requested.connect(
+                lambda: self.back_to_calendar(self.todo_window)
+            )
+            self.todo_window.kanban_requested.connect(self.show_kanban_window)
+        if self.all_tasks_window is not None:
+            self.all_tasks_window.close()
+        self.show_window(self.todo_window)
 
     def clicked_knowledge_btn(self):
         """
-        show Mish's knowledge sharing window
+        show the knowledge sharing window
         """
         if self.knowledge_window is None:
             self.knowledge_window = forum.ForumScreen(user=self.current_user)
@@ -186,7 +201,8 @@ class CalendarApp(QWidget):
         self.show_window(self.add_task_window)
 
     def set_user(self, user):
-        self.current_user = user or CURRENT_USER
+        state.set_user(user)
+        self.current_user = state.get_user()
         self.header.set_user(self.current_user)
         for window in self.child_windows():
             window.set_user(self.current_user)
@@ -194,6 +210,7 @@ class CalendarApp(QWidget):
     def child_windows(self):
         windows = (
             self.all_tasks_window,
+            self.todo_window,
             self.knowledge_window,
             self.add_task_window,
         )
@@ -231,11 +248,7 @@ class SpecialCalendar(QCalendarWidget):
             super().paintCell(painter, rect, date)
     
             #see if there are tasks on that date
-            count = 0
-            for day in task_list:
-                if day["date"] == date:
-                    count = len(day["tasks"])
-                    break
+            count = len(tasks_due_on(date))
 
      
             painter.save()
