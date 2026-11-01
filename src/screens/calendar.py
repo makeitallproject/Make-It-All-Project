@@ -1,31 +1,17 @@
 import signal
 import sys
-from pathlib import Path
 
 from PyQt6.QtCore import QDate, Qt, QPoint
-from PyQt6.QtGui import QFont, QPainter, QColor, QPixmap
+from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import (
     QApplication,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
     QPushButton,
-    QSizePolicy,
-    QSpinBox,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
     QCalendarWidget,
-    QLineEdit,
-    QFrame,
-    QSpacerItem
+    QFrame
 )
 
 import state
