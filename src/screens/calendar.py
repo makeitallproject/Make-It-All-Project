@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
 
 import state
 from screens import forum, kanban, login, task
+from screens.todo_list import todo_list
 from widgets.app_header import AppHeader
 
 is_manager = True
@@ -57,6 +58,7 @@ class CalendarApp(QWidget):
         self.login_window = login_window
         self.current_user = state.get_user()
         self.all_tasks_window = None
+        self.todo_window = None
         self.knowledge_window = None
         self.add_task_window = None
 
@@ -155,13 +157,30 @@ class CalendarApp(QWidget):
         """
         show the Kanban board window
         """
+        self.show_kanban_window()
+
+    def show_kanban_window(self):
         if self.all_tasks_window is None:
             self.all_tasks_window = kanban.KanbanScreen(user=self.current_user)
             # allow the button in the header to re-focus/re-open this window
             self.all_tasks_window.header.back_requested.connect(
                 lambda: self.back_to_calendar(self.all_tasks_window)
             )
+            self.all_tasks_window.todo_requested.connect(self.show_todo_window)
+        if self.todo_window is not None:
+            self.todo_window.close()
         self.show_window(self.all_tasks_window)
+
+    def show_todo_window(self):
+        if self.todo_window is None:
+            self.todo_window = todo_list.MainWindow(user=self.current_user)
+            self.todo_window.header.back_requested.connect(
+                lambda: self.back_to_calendar(self.todo_window)
+            )
+            self.todo_window.kanban_requested.connect(self.show_kanban_window)
+        if self.all_tasks_window is not None:
+            self.all_tasks_window.close()
+        self.show_window(self.todo_window)
 
     def clicked_knowledge_btn(self):
         """
@@ -205,6 +224,7 @@ class CalendarApp(QWidget):
     def child_windows(self):
         windows = (
             self.all_tasks_window,
+            self.todo_window,
             self.knowledge_window,
             self.add_task_window,
         )

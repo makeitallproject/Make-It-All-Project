@@ -5,7 +5,7 @@ import signal
 import sys
 from pathlib import Path
 
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
@@ -56,6 +56,8 @@ def progress_bar_path(percent: int) -> Path:
 
 
 class MainWindow(QMainWindow):
+    kanban_requested = pyqtSignal()
+
     def __init__(self, user: str = ""):
         super().__init__()
 
@@ -88,10 +90,22 @@ class MainWindow(QMainWindow):
         self.delete_confirm_text.setWordWrap(True)
         self.stack.addWidget(self.build_delete_page())
 
+        controls = QHBoxLayout()
+        self.create_task_btn = QPushButton("Create a task")
+        self.create_task_btn.clicked.connect(self.open_add_task)
+        self.kanban_btn = QPushButton("Switch to Kanban Board")
+        self.kanban_btn.clicked.connect(
+            lambda: self.kanban_requested.emit()
+        )
+        controls.addWidget(self.create_task_btn)
+        controls.addWidget(self.kanban_btn)
+        controls.addStretch()
+
         ladder = QVBoxLayout()
         ladder.setContentsMargins(16, 16, 16, 16)
         ladder.setSpacing(12)
         ladder.addWidget(self.header)
+        ladder.addLayout(controls)
         ladder.addWidget(self.stack, 1)
 
         container = QWidget()
@@ -354,7 +368,16 @@ def startup() -> None:
     app = QApplication(sys.argv)
     if STYLESHEET_PATH.exists():
         app.setStyleSheet(STYLESHEET_PATH.read_text())
+
+    from screens import kanban
+
     window = MainWindow()
+    board = kanban.KanbanScreen()
+    window.kanban_requested.connect(lambda: (window.hide(), board.show()))
+    board.todo_requested.connect(lambda: (board.hide(), window.show()))
+    board.header.back_requested.connect(
+        lambda: (board.hide(), window.show())
+    )
     window.show()
     sys.exit(app.exec())
 

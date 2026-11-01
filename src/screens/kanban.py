@@ -4,7 +4,7 @@ import signal
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 )
 
 import state
+from screens import task as task_screen
 from widgets.app_header import AppHeader
 from widgets.avatar import Avatar
 from widgets.empty_state import EmptyState
@@ -34,7 +35,7 @@ COLUMNS = ["To Do", "In Progress", "Done"]
 # Matches the type scale used by the forum screen: 12 meta, 13 UI, 14 card
 # title, 16 column title, 20 screen title.
 STYLESHEET = """
-QWidget {
+QCheckBox {
     font-size: 13px;
 }
 QLabel#columnTitle {
@@ -364,10 +365,13 @@ class ColumnWidget(QFrame):
 
 
 class KanbanScreen(QWidget):
+    todo_requested = pyqtSignal()
+
     def __init__(self, user: str = ""):
         super().__init__()
 
         self.current_user = user or state.get_user()
+        self.add_task_window = None
         self.setWindowTitle("Make-It-All Tasks Board")
         self.setMinimumSize(500, 200)
         self.resize(1100, 780)
@@ -380,6 +384,16 @@ class KanbanScreen(QWidget):
             "Tasks Board", user=self.current_user, back_to_calendar=True
         )
         root.addWidget(self.header)
+
+        controls = QHBoxLayout()
+        self.create_task_btn = QPushButton("Create a task")
+        self.create_task_btn.clicked.connect(self.open_add_task)
+        self.todo_btn = QPushButton("Switch to To-Do List")
+        self.todo_btn.clicked.connect(lambda: self.todo_requested.emit())
+        controls.addWidget(self.create_task_btn)
+        controls.addWidget(self.todo_btn)
+        controls.addStretch()
+        root.addLayout(controls)
 
         board_max_width = (
             len(COLUMNS) * COLUMN_MAX_WIDTH + (len(COLUMNS) - 1) * BOARD_GAP
@@ -431,15 +445,33 @@ class KanbanScreen(QWidget):
             column = {"column": column_name, "tasks": column_tasks}
             self.board_layout.addWidget(ColumnWidget(column), 1)
 
+    def open_add_task(self) -> None:
+        if self.add_task_window is None:
+            self.add_task_window = task_screen.MainWindow(
+                user=self.current_user
+            )
+        self.add_task_window.show()
+        self.add_task_window.raise_()
+        self.add_task_window.activateWindow()
+
     def set_user(self, user: str) -> None:
         """Update the signed-in user shown in the header."""
         self.current_user = user or state.get_user()
         self.header.set_user(self.current_user)
+        if self.add_task_window is not None:
+            self.add_task_window.set_user(self.current_user)
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # Make Ctrl+C work
     app = QApplication(sys.argv)
+
+    from screens.todo_list import todo_list
+
     window = KanbanScreen()
+    todo = todo_list.MainWindow()
+    window.todo_requested.connect(lambda: (window.hide(), todo.show()))
+    todo.kanban_requested.connect(lambda: (todo.hide(), window.show()))
+    todo.header.back_requested.connect(lambda: (todo.hide(), window.show()))
     window.show()
     sys.exit(app.exec())
